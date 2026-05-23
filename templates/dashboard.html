@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Ayuda y Tutoriales - ECE{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Módulo de Ayuda y Capacitación</h2>
+    <span style="color: var(--text-muted);">{{ 'Bienvenido' if current_user.sexo == 'Masculino' else 'Bienvenida' if
+        current_user.sexo == 'Femenino' else 'Bienvenido(a)' }}, {{ 'Dr.' if current_user.sexo == 'Masculino' else
+        'Dra.' if current_user.sexo == 'Femenino' else 'Dr(a).' }} {{ current_user.username }}</span>
+</div>
+
+<div class="card card-highlight" style="margin-bottom: 2rem;">
+    <h3 style="margin-top: 0; color: var(--text-main);">Primeros Pasos</h3>
+    <p>Aprende a utilizar la plataforma ECE con estos videos tutoriales cortos. Haz clic en cualquier video para
+        comenzar a aprender sobre las distintas herramientas.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem;">
+    <!-- Video 1 (Nuevo) -->
+    <div class="card" style="padding: 1.5rem;">
+        <div
+            style="background-color: #000; width: 100%; padding-top: 56.25%; position: relative; border-radius: 8px; overflow: hidden; margin-bottom: 1rem;">
+            <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                src="https://www.youtube.com/embed/OJxz_jVMTuM" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin: 0 0 0.5rem 0;">1. Cómo configurar tu perfil</h4>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Aprende a añadir tu especialidad, teléfono y
+            a subir tu firma digital para los documentos.</p>
+    </div>
+
+    <!-- Video 2 -->
+    <div class="card" style="padding: 1.5rem;">
+        <div
+            style="background-color: #000; width: 100%; padding-top: 56.25%; position: relative; border-radius: 8px; overflow: hidden; margin-bottom: 1rem;">
+            <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                src="https://www.youtube.com/embed/u-hQwI-bqeU" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin: 0 0 0.5rem 0;">2. ¿Cómo agendar una cita?</h4>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Aprende a usar el calendario interactivo,
+            crear nuevas citas y gestionar tus recordatorios.</p>
+    </div>
+
+    <!-- Video 3 -->
+    <div class="card" style="padding: 1.5rem;">
+        <div
+            style="background-color: #000; width: 100%; padding-top: 56.25%; position: relative; border-radius: 8px; overflow: hidden; margin-bottom: 1rem;">
+            <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                src="https://www.youtube.com/embed/Kpl4p_WOfFM" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin: 0 0 0.5rem 0;">3. Consulta Rápida y Generación de PDF</h4>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Paso a paso para llenar los datos vitales del
+            paciente y exportar el resumen en formato PDF.</p>
+    </div>
+
+    <!-- Video 4 -->
+    <div class="card" style="padding: 1.5rem;">
+        <div
+            style="background-color: #000; width: 100%; padding-top: 56.25%; position: relative; border-radius: 8px; overflow: hidden; margin-bottom: 1rem;">
+            <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                src="https://www.youtube.com/embed/RU0SkPAXO9I" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin: 0 0 0.5rem 0;">4. Gestor de Expedientes</h4>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Descubre cómo arrastrar, usar y exportar
+            cualquiera de las plantillas disponibles.</p>
+    </div>
+
+    <!-- Video 5 (Nuevo) -->
+    <div class="card" style="padding: 1.5rem;">
+        <div
+            style="background-color: #000; width: 100%; padding-top: 56.25%; position: relative; border-radius: 8px; overflow: hidden; margin-bottom: 1rem;">
+            <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                src="https://www.youtube.com/embed/7XhAf0kEzM4" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin: 0 0 0.5rem 0;">5. Cómo crear tu propia plantilla</h4>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Descubre cómo utilizar el constructor
+            dinámico para crear formatos a la medida de tu especialidad.</p>
+    </div>
+
+    <!-- Video 6 -->
+    <div class="card" style="padding: 1.5rem;">
+        <div
+            style="background-color: #000; width: 100%; padding-top: 56.25%; position: relative; border-radius: 8px; overflow: hidden; margin-bottom: 1rem;">
+            <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                src="https://www.youtube.com/embed/ipoOK7OEJK8" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin: 0 0 0.5rem 0;">6. Uso del Transcriptor de Voz</h4>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Tutorial para habilitar el micrófono y dictar
+            las notas médicas a texto de forma fluida.</p>
+    </div>
+
+    <!-- Video 7 (Nuevo) -->
+    <div class="card" style="padding: 1.5rem;">
+        <div
+            style="background-color: #000; width: 100%; padding-top: 56.25%; position: relative; border-radius: 8px; overflow: hidden; margin-bottom: 1rem;">
+            <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+                src="https://www.youtube.com/embed/YNx3snsXZIA" allowfullscreen></iframe>
+        </div>
+        <h4 style="margin: 0 0 0.5rem 0;">7. Cómo usar el Enlace de Salud Remoto</h4>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Aprende a compartir enlaces seguros para que
+            tus pacientes consulten su historial desde casa.</p>
+    </div>
+</div>
+{% endblock %}
