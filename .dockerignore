@@ -1,0 +1,13 @@
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+instance/
+*.db
+ece.db
+xpedient.db
+.DS_Store
+Thumbs.db

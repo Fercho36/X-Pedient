@@ -1,0 +1,27 @@
+# Entornos virtuales
+venv/
+env/
+
+# Archivos compilados de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Variables de entorno / Secretos (¡NUNCA SUBIR A GITHUB!)
+.env
+*.env
+
+# Bases de datos y archivos de instancia
+*.sqlite3
+*.db
+ece.db
+instance/
+
+# Archivos subidos por los usuarios (fotos, PDF, firmas)
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Archivos temporales o del sistema operativo
+.DS_Store
+Thumbs.db
