@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% block title %}Consulta Rápida - ECE{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h2>Consulta Rápida de Primer Nivel</h2>
+    {% if consultation %}
+    <a href="{{ url_for('consultation') }}" class="btn btn-outline" style="border-radius:20px;">+ Nueva Consulta</a>
+    {% endif %}
+</div>
+
+<div class="card" style="max-width: 900px; margin: 0 auto;">
+    {% if not consultation %}
+    <form method="POST" action="{{ url_for('consultation') }}">
+        <h3 style="color: var(--accent-med); border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Datos del Paciente</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+            <div class="form-group">
+                <label class="form-label" for="nombre_paciente">Nombre(s)</label>
+                <input type="text" id="nombre_paciente" name="nombre_paciente" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="apellido_paterno">Apellido Paterno</label>
+                <input type="text" id="apellido_paterno" name="apellido_paterno" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="apellido_materno">Apellido Materno</label>
+                <input type="text" id="apellido_materno" name="apellido_materno" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="edad">Edad (Años)</label>
+                <input type="number" id="edad" name="edad" class="form-control" required min="0">
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+            <div class="form-group">
+                <label class="form-label">Sexo</label>
+                <div style="display: flex; gap: 1rem; align-items: center; height: 100%; margin-top:5px;">
+                    <label style="display:flex; align-items:center; gap:5px;"><input type="radio" name="genero" value="Femenino" required> Femenino</label>
+                    <label style="display:flex; align-items:center; gap:5px;"><input type="radio" name="genero" value="Masculino" required> Masculino</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="peso">Peso (kg)</label>
+                <input type="number" step="0.1" id="peso" name="peso" class="form-control" required min="0">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="altura">Altura (m)</label>
+                <input type="number" step="0.01" id="altura" name="altura" class="form-control" required min="0" placeholder="Ej. 1.75">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="imc">IMC</label>
+                <input type="text" id="imc" name="imc" class="form-control" readonly style="background-color: var(--bg-hover); cursor: not-allowed;">
+            </div>
+        </div>
+
+        <h3 style="color: var(--accent-med); border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem; margin-bottom: 1.5rem; margin-top: 2rem;">Signos Vitales y Constantes</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+            <div class="form-group">
+                <label class="form-label" for="presion_arterial">Presión Arterial (mmHg)</label>
+                <input type="text" id="presion_arterial" name="presion_arterial" class="form-control" placeholder="120/80" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="frecuencia_cardiaca">Fre. Cardiaca (lpm)</label>
+                <input type="number" id="frecuencia_cardiaca" name="frecuencia_cardiaca" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="frecuencia_respiratoria">Fre. Respiratoria (rpm)</label>
+                <input type="number" id="frecuencia_respiratoria" name="frecuencia_respiratoria" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="temperatura">Temperatura (°C)</label>
+                <input type="number" step="0.1" id="temperatura" name="temperatura" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="saturacion_oxigeno">Saturación Oxígeno (%)</label>
+                <input type="number" id="saturacion_oxigeno" name="saturacion_oxigeno" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="evaluacion_dolor">Dolor (1-10)</label>
+                <input type="number" id="evaluacion_dolor" name="evaluacion_dolor" class="form-control" min="1" max="10" required>
+            </div>
+        </div>
+        
+        <h3 style="color: var(--accent-med); border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem; margin-bottom: 1.5rem; margin-top: 2rem;">Detalles Clínicos</h3>
+        
+        <div class="form-group">
+            <label class="form-label" for="motivo">Motivo de Consulta</label>
+            <textarea id="motivo" name="motivo" class="form-control" rows="3" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <label class="form-label" for="resumen_clinico" style="margin-bottom: 0;">Resumen Clínico</label>
+                <button type="button" id="micBtnResumen" class="btn btn-outline" onclick="iniciarTranscripcion('resumen_clinico', this)" style="padding: 0.2rem 0.5rem; font-size: 0.85rem; border-radius: 5px; color: var(--accent-med); border-color: var(--accent-med);" title="Dictar por voz">
+                    <i class="fas fa-microphone"></i> Dictar
+                </button>
+            </div>
+            <textarea id="resumen_clinico" name="resumen_clinico" class="form-control" rows="4" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="diagnostico">Diagnóstico</label>
+            <textarea id="diagnostico" name="diagnostico" class="form-control" rows="2" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="receta">Receta Médica</label>
+            <textarea id="receta" name="receta" class="form-control" rows="4" required></textarea>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" id="saveConsultationBtn" class="btn btn-primary" style="flex: 1;" onclick="setTimeout(()=> { this.disabled=true; this.textContent='Guardando...'; this.form.submit(); }, 10);">
+                Guardar Consulta
+            </button>
+        </div>
+    </form>
+    
+    {% else %}
+    <!-- CONSULTATION SAVED VIEW -->
+    <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+        <a href="{{ url_for('export_consultation_pdf_endpoint', id=consultation.id) }}" class="btn btn-primary" style="flex: 1; text-align: center; font-weight: bold; padding: 1rem; font-size: 1.1rem; border-radius: 8px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:5px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Exportar a PDF
+        </a>
+        <button id="generateRemoteLinkBtn" class="btn btn-outline" style="flex: 1; text-align: center; font-weight: bold; padding: 1rem; font-size: 1.1rem; border-radius: 8px; color: var(--accent-med); border-color: var(--accent-med);" onclick="generateRemoteLink('{{ consultation.id }}')">
+            Generar Enlace Remoto
+        </button>
+    </div>
+    <div id="remoteLinkContainer" style="display: none; margin-bottom: 2rem; background: var(--bg-secondary); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-light); text-align: center;">
+        <span style="font-weight: bold; color: var(--accent-med); display: block; margin-bottom: 0.5rem;">Enlace Activo para Paciente:</span>
+        <code id="remoteLinkUrl" style="background: var(--bg-main); padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border-light); display: inline-block; word-break: break-all; margin-bottom: 0.5rem; color: var(--text-main);"></code>
+        <button class="btn btn-primary" style="padding: 0.3rem 0.8rem; font-size: 0.9rem; margin-left: 0.5rem;" onclick="copyRemoteLink()">Copiar</button>
+    </div>
+
+    <div style="background:var(--bg-light); padding:1.5rem; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:2rem;">
+        <h3 style="margin-top:0; color:var(--accent-med);">Resumen de Consulta Guardada</h3>
+        <p><strong>Paciente:</strong> {{ consultation.patient.nombre }} {{ consultation.patient.apellido_paterno }} {{ consultation.patient.apellido_materno }}</p>
+        <p><strong>Motivo:</strong> {{ consultation.motivo }}</p>
+        <p><strong>Diagnóstico:</strong> {{ consultation.diagnostico }}</p>
+        <p><strong>Antropometría:</strong> Peso: {{ consultation.patient.peso }} kg | Altura: {{ consultation.altura if consultation.altura else '--' }} m | IMC: {{ consultation.imc if consultation.imc else '--' }}</p>
+        <p><strong>Fecha:</strong> {{ consultation.fecha.strftime('%d/%m/%Y %H:%M') }}</p>
+    </div>
+
+    <h3 style="color: var(--accent-med); border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">Documentos Anexos a esta Consulta</h3>
+    
+    <div class="upload-zone" id="uploadZone" style="border: 2px dashed #cbd5e1; border-radius: 8px; padding: 2rem; text-align: center; margin-bottom: 2rem; background: #f8fafc; cursor: pointer;">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <h4 style="margin: 0 0 0.5rem 0; color: #475569;">Arrastra un archivo aquí o haz clic</h4>
+        <p style="margin: 0; font-size: 0.9rem; color: #64748b;">Archivos apoyados: PDF, JPG, PNG (Max 5MB)</p>
+        <input type="file" id="fileInput" style="display: none;" accept=".pdf,.jpg,.jpeg,.png">
+    </div>
+
+    <div id="attachmentsList" style="display:flex; flex-direction:column; gap:0.5rem;">
+        {% if attachments %}
+            {% for att in attachments %}
+            <div class="card" style="padding:1rem; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.9rem;">📄 {{ att.original_name }}</span>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:var(--text-muted); font-size:0.9rem;">No hay archivos adjuntos todavía.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        const zone = document.getElementById('uploadZone');
+        const input = document.getElementById('fileInput');
+
+        if (zone && input) {
+            zone.addEventListener('click', () => input.click());
+
+            zone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                zone.style.borderColor = 'var(--accent-med)';
+                zone.style.background = '#f0f9ff';
+            });
+
+            zone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                zone.style.borderColor = '#cbd5e1';
+                zone.style.background = '#f8fafc';
+            });
+
+            zone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                zone.style.borderColor = '#cbd5e1';
+                zone.style.background = '#f8fafc';
+                if (e.dataTransfer.files.length > 0) {
+                    uploadFile(e.dataTransfer.files[0]);
+                }
+            });
+
+            input.addEventListener('change', () => {
+                if (input.files.length > 0) {
+                    uploadFile(input.files[0]);
+                }
+            });
+        }
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            zone.innerHTML = '<p style="color:var(--accent-med);">Subiendo archivo...</p>';
+
+            try {
+                const res = await fetch(`/api/consultation_upload/{{ consultation.id }}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Error subiendo archivo: ' + data.error);
+                    window.location.reload();
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Error al contactar al servidor');
+                window.location.reload();
+            }
+        }
+
+        async function generateRemoteLink(id) {
+            const btn = document.getElementById('generateRemoteLinkBtn');
+            btn.disabled = true;
+            btn.textContent = "Generando...";
+
+            try {
+                const res = await fetch(`/api/remote_care/generate/${id}`, { method: 'POST' });
+                const data = await res.json();
+                
+                if (data.success) {
+                    showRemoteLink(data.url);
+                } else {
+                    alert('Error: ' + data.error);
+                    btn.disabled = false;
+                    btn.textContent = "Generar Enlace Remoto";
+                }
+            } catch(e) {
+                console.error(e);
+                alert("Error al contactar al servidor.");
+                btn.disabled = false;
+                btn.textContent = "Generar Enlace Remoto";
+            }
+        }
+
+        function showRemoteLink(url) {
+            const btn = document.getElementById('generateRemoteLinkBtn');
+            btn.disabled = true;
+            btn.textContent = "Enlace Generado";
+            const container = document.getElementById('remoteLinkContainer');
+            const urlElem = document.getElementById('remoteLinkUrl');
+            urlElem.textContent = url;
+            container.style.display = 'block';
+        }
+
+        function copyRemoteLink() {
+            const url = document.getElementById('remoteLinkUrl').textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                alert("¡Enlace copiado al portapapeles!");
+            });
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            const remoteCareData = document.getElementById('remoteCareData');
+            if (remoteCareData) {
+                showRemoteLink(remoteCareData.dataset.url);
+            }
+        });
+    </script>
+    {% if consultation and consultation.remote_care_link and consultation.remote_care_link.is_active and consultation.remote_care_link.expires_at > datetime.utcnow() %}
+        <meta id="remoteCareData" data-url="{{ url_for('remote_care_patient', token=consultation.remote_care_link.token, _external=True) }}">
+    {% endif %}
+    {% endif %}
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const pesoInput = document.getElementById('peso');
+        const alturaInput = document.getElementById('altura');
+        const imcInput = document.getElementById('imc');
+        
+        function calculateIMC() {
+            if (!pesoInput || !alturaInput || !imcInput) return;
+            const peso = parseFloat(pesoInput.value);
+            const altura = parseFloat(alturaInput.value);
+            if (peso > 0 && altura > 0) {
+                const imc = peso / (altura * altura);
+                imcInput.value = imc.toFixed(2);
+            } else {
+                imcInput.value = '';
+            }
+        }
+        
+        if (pesoInput) pesoInput.addEventListener('input', calculateIMC);
+        if (alturaInput) alturaInput.addEventListener('input', calculateIMC);
+    });
+</script>
+{% endblock %}

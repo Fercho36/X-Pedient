@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Configuración de Seguridad - ECE{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 4rem auto; text-align: center;" class="card">
+    <h2 style="color: var(--accent-med);">Doble Factor de Autenticación</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">Protección estricta obligatoria para el acceso a expedientes.</p>
+    
+    {% if mode == 'setup' %}
+    <div style="background:var(--bg-light); border-radius:8px; padding:1.5rem; margin-bottom:2rem;">
+        <p style="font-weight:600;">1. Escanea este código QR con Google Authenticator o Authy</p>
+        <img src="data:image/png;base64,{{ qr_b64 }}" alt="QR Code 2FA" style="border:1px solid #cbd5e1; border-radius:8px; margin: 1rem 0;">
+        <p style="font-size:0.85rem; color:#64748b; word-break:break-all;">Código manual (si no puedes escanear): <br><strong>{{ secret }}</strong></p>
+    </div>
+    <form method="POST" action="{{ url_for('setup_2fa') }}">
+        <p style="font-weight:600;">2. Ingresa el código de 6 dígitos de tu app</p>
+    {% else %}
+    <form method="POST" action="{{ url_for('verify_2fa') }}">
+    {% endif %}
+
+        <div class="form-group" style="margin-bottom: 2rem;">
+            <input type="text" name="token" class="form-control" style="font-size: 1.5rem; text-align: center; letter-spacing: 0.5rem;" placeholder="000000" maxlength="6" autocomplete="off" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 1.1rem;">
+            {% if mode == 'setup' %}Completar Configuración{% else %}Verificar y Entrar{% endif %}
+        </button>
+    </form>
+</div>
+{% endblock %}

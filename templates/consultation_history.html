@@ -1,0 +1,487 @@
+{% extends 'base.html' %}
+{% block title %}Historial y Búsqueda de Consultas - ECE{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 2rem; height: 80vh;">
+    <!-- Sidebar: Search and List -->
+    <div class="card" style="width: 320px; overflow-y: hidden; display: flex; flex-direction: column; padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0;">Consultas</h3>
+            <a href="{{ url_for('consultation') }}" class="btn btn-primary" title="Nueva Consulta" style="padding: 0.3rem 0.6rem; border-radius: 50%; font-weight: bold;">+</a>
+        </div>
+        
+        <input type="text" id="consultationSearch" class="form-control" placeholder="Buscar paciente o folio..." style="margin-bottom: 1rem;">
+        
+        <div id="consultationList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; padding-right: 0.5rem;">
+            <!-- Injected via JS -->
+            <p style="color:var(--text-muted); font-size:0.9rem;">Cargando...</p>
+        </div>
+    </div>
+    
+    <!-- Main Detail View -->
+    <div style="flex: 1; display: flex; flex-direction: column; background: #fff; border-radius: 12px; border: 1px solid var(--border-light); overflow: hidden;">
+        <!-- Header -->
+        <div style="background: var(--bg-secondary); padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <b id="detailFolio" style="color: var(--accent-med); background: var(--accent-light); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.85rem; margin-right: 0.5rem;">FOLIO</b>
+                <span id="detailDate" style="color: var(--text-muted); font-size: 0.9rem;">Selecciona una consulta</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;" id="actionButtons" style="display:none;">
+                <div id="headerRemoteCareContainer" style="display: flex; gap: 0.5rem; align-items: center; border-right: 1px solid var(--border-light); padding-right: 1rem; margin-right: 0.5rem;">
+                    <button id="headerGenerateRemoteLinkBtn" class="btn btn-outline" style="color:var(--accent-med); border-color:var(--accent-med);" onclick="generateRemoteLink()">Generar Enlace Remoto</button>
+                    <div id="headerRemoteLinkContainer" style="display: none; align-items: center; gap: 4px; background: var(--bg-main); border: 1px solid var(--border-light); border-radius: 6px; padding: 0.2rem 0.5rem;">
+                        <code id="headerRemoteLinkUrl" style="max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.85rem; color: var(--text-muted);"></code>
+                        <button class="btn btn-outline" style="padding: 0.2rem 0.4rem; border: none; color: var(--accent-med);" onclick="copyHeaderRemoteLink()" title="Copiar enlace">
+                            <i class="fa-regular fa-clipboard"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button class="btn btn-outline" id="deletePdfBtn" style="color:var(--accent-danger); border-color:var(--accent-danger); padding: 0.4rem 0.6rem;" onclick="showDeleteModal()" title="Eliminar Consulta"><i class="fa-solid fa-trash"></i></button>
+                <button class="btn btn-outline" style="border-color:var(--accent-med); color:var(--accent-med);" onclick="showShareModal()"><i class="fa-solid fa-share-nodes"></i> Compartir Expediente</button>
+                <button class="btn btn-primary" id="exportPdfBtn" onclick="exportCurrentPdf()">Exportar a PDF</button>
+            </div>
+        </div>
+        
+        <!-- Scrollable Content -->
+        <div id="detailArea" style="flex: 1; padding: 2rem; overflow-y: auto; background: var(--bg-main); display: flex; flex-direction: column; align-items: center; justify-content: flex-start;">
+            <div id="placeholderText" style="color: #94a3b8; text-align: center; width: 100%; margin: auto;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 1rem;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><br>
+                Selecciona una consulta de la lista izquierda<br>para ver todo el detalle.
+            </div>
+            
+            <div id="consultationContent" class="document-canvas" style="display: none; width: 100%; max-width: 800px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 2.5rem; flex-shrink: 1; height: max-content; margin: auto auto 4rem auto;">
+                <!-- Content Injected -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Password Delete Modal -->
+<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="card" style="width: 100%; max-width: 400px; padding: 2rem;">
+        <h3 style="color: var(--accent-danger); margin-top: 0;">Confirmar Eliminación</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Para eliminar esta consulta médica de forma permanente, por seguridad debes ingresar tu contraseña de acceso.</p>
+        
+        <div style="position: relative; margin-bottom: 1.5rem;">
+            <input type="password" id="deletePassword" class="form-control" placeholder="Contraseña de tu cuenta" style="padding-right: 2.5rem;">
+            <button type="button" onclick="togglePasswordVisibility('deletePassword', this)" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer;">
+                <i class="fa-regular fa-eye"></i>
+            </button>
+        </div>
+        
+        <div style="display: flex; gap: 1rem;">
+            <button class="btn btn-outline" style="flex: 1;" onclick="hideDeleteModal()">Cancelar</button>
+            <button class="btn btn-primary" style="flex: 1; background: var(--accent-danger); border-color: var(--accent-danger);" onclick="confirmDelete()">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal (Interconsulta Digital) -->
+<div id="shareModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="card" style="width: 100%; max-width: 450px; padding: 2.5rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);">
+        <h3 style="color: var(--text-main); margin-top: 0; display: flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-share-nodes" style="color: var(--accent-med);"></i> Interconsulta Digital</h3>
+        
+        <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 1rem; margin-bottom: 1.5rem; border-radius: 0 8px 8px 0;">
+            <p style="color: #92400e; font-size: 0.85rem; margin: 0; line-height: 1.4;"><strong>Aviso:</strong> El expediente transferido será una copia profunda independiente. Las modificaciones futuras en este paciente no se sincronizarán entre ambos médicos.</p>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" style="font-weight: 600;">Nombre de Usuario del Médico Destino</label>
+            <input type="text" id="shareUsername" class="form-control" placeholder="Ej. Dra. Sanchez">
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 2rem;">
+            <label class="form-label" style="font-weight: 600;">Cédula Profesional</label>
+            <input type="text" id="shareCedula" class="form-control" placeholder="Número exacto de cédula">
+        </div>
+        
+        <div style="display: flex; gap: 1rem;">
+            <button class="btn btn-outline" style="flex: 1; border-color: var(--border-light);" onclick="hideShareModal()">Cancelar</button>
+            <button id="shareSubmitBtn" class="btn btn-primary" style="flex: 1;" onclick="submitShare()">Transferir Copia</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let currentConsultationId = null;
+    let currentPatientId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchConsultations();
+        
+        document.getElementById('consultationSearch').addEventListener('input', (e) => {
+            fetchConsultations(e.target.value);
+        });
+    });
+
+    async function fetchConsultations(search = '') {
+        try {
+            const res = await fetch('/api/consultations?search=' + encodeURIComponent(search));
+            const data = await res.json();
+            const list = document.getElementById('consultationList');
+            list.innerHTML = '';
+            
+            if(data.length === 0) {
+                list.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">No se encontraron resultados.</p>';
+                return;
+            }
+            
+            data.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.style = "padding: 1rem; border: 1px solid var(--border-light); border-radius: 6px; cursor: pointer; transition: background 0.2s, border-color 0.2s; background: var(--bg-secondary);";
+                div.onclick = () => loadConsultation(c.id, div);
+                
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.3rem;">
+                        <span style="font-size:0.8rem; font-weight:bold; color:var(--accent-med);">${c.folio}</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted);">${c.fecha}</span>
+                    </div>
+                    <div style="font-weight:600; font-size:0.95rem; margin-bottom:0.3rem;">${c.patient_name}</div>
+                    <div style="font-size:0.85rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.motivo}</div>
+                `;
+                
+                // Keep selection style if it's the current one
+                if (currentConsultationId === c.id) {
+                    div.style.borderColor = 'var(--accent-med)';
+                    div.style.background = 'var(--bg-hover)';
+                }
+                
+                list.appendChild(div);
+            });
+        } catch(e) {
+            console.error(e);
+            document.getElementById('consultationList').innerHTML = '<p style="color:var(--accent-danger); font-size:0.9rem;">Error al cargar.</p>';
+        }
+    }
+
+    async function loadConsultation(id, element) {
+        currentConsultationId = id;
+        
+        // Update selection styling
+        document.querySelectorAll('.history-item').forEach(el => {
+            el.style.borderColor = 'var(--border-light)';
+            el.style.background = 'var(--bg-secondary)';
+        });
+        if (element) {
+            element.style.borderColor = 'var(--accent-med)';
+            element.style.background = 'var(--bg-hover)';
+        }
+        
+        document.getElementById('placeholderText').style.display = 'none';
+        const contentDiv = document.getElementById('consultationContent');
+        contentDiv.style.display = 'block';
+        contentDiv.innerHTML = '<p style="text-align:center; color:var(--text-muted);">Cargando detalles...</p>';
+        
+        document.getElementById('headerRemoteLinkContainer').style.display = 'none';
+        const btn = document.getElementById('headerGenerateRemoteLinkBtn');
+        btn.disabled = false;
+        btn.textContent = "Generar Enlace Remoto";
+        
+        document.getElementById('actionButtons').style.display = 'flex';
+        
+        try {
+            const res = await fetch('/api/consultations/' + id);
+            const data = await res.json();
+            
+            currentPatientId = data.patient.id;
+
+            document.getElementById('detailFolio').textContent = data.patient.folio || 'SIN-FOLIO';
+            document.getElementById('detailDate').textContent = data.consultation.fecha;
+            
+            // Text safety variables
+            const safeMotivo = (data.consultation.motivo || '').replace(/\n/g, '<br>');
+            const safeResumen = (data.consultation.resumen_clinico || '').replace(/\n/g, '<br>');
+            
+            let attachmentsHtml = '';
+            if (data.attachments && data.attachments.length > 0) {
+                attachmentsHtml = `<h4 style="margin-top: 2rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem; color: var(--accent-med);">Documentos Anexos</h4>`;
+                data.attachments.forEach(att => {
+                    attachmentsHtml += `
+                        <div style="padding:0.6rem; background:var(--bg-secondary); border:1px solid var(--border-light); border-radius:4px; margin-bottom:0.4rem; display:flex; justify-content:space-between;">
+                            <a href="/static/uploads/${att.filename}" target="_blank" style="text-decoration:none; color:var(--accent-med); font-size:0.9rem;">📄 ${att.original_name}</a>
+                        </div>
+                    `;
+                });
+            } else {
+                attachmentsHtml = `<h4 style="margin-top: 2rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem; color: var(--accent-med);">Documentos Anexos</h4>
+                                   <p style="color:var(--text-muted); font-size:0.9rem;">No hay archivos adjuntos.</p>`;
+            }
+            
+            contentDiv.innerHTML = `
+                <h2 style="margin-top:0; color:var(--text-main); font-size:1.4rem; border-bottom: 2px solid var(--accent-med); padding-bottom:0.5rem; display:inline-block;">Información del Paciente</h2>
+                
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin-bottom:2rem; margin-top:1rem; padding:1.5rem; border-radius:8px; border: 1px solid var(--border-light);">
+                    <div><span style="color:var(--text-muted); font-size:0.85rem; display:block;">Nombre Completo</span>
+                         <span style="font-weight:600;">${data.patient.nombre} ${data.patient.apellido_paterno} ${data.patient.apellido_materno}</span></div>
+                    <div><span style="color:var(--text-muted); font-size:0.85rem; display:block;">Edad</span>
+                         <span style="font-weight:600;">${data.patient.edad} años</span></div>
+                    <div><span style="color:var(--text-muted); font-size:0.85rem; display:block;">Peso</span>
+                         <span style="font-weight:600;">${data.patient.peso} kg</span></div>
+                    <div><span style="color:var(--text-muted); font-size:0.85rem; display:block;">Género</span>
+                         <span style="font-weight:600;">${data.patient.genero || 'N/A'}</span></div>
+                    <div><span style="color:var(--text-muted); font-size:0.85rem; display:block;">Altura</span>
+                         <span style="font-weight:600;">${data.consultation.altura ? data.consultation.altura + ' m' : 'N/A'}</span></div>
+                    <div><span style="color:var(--text-muted); font-size:0.85rem; display:block;">IMC</span>
+                         <span style="font-weight:600;">${data.consultation.imc || 'N/A'}</span></div>
+                </div>
+
+                <h2 style="color:var(--text-main); font-size:1.4rem; border-bottom: 2px solid var(--accent-med); padding-bottom:0.5rem; display:inline-block;">Constantes Vitales</h2>
+                
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1.5rem; margin-bottom:2rem; margin-top:1rem;">
+                    <div><span style="color:var(--text-muted); font-size:0.85rem; display:block;">Presión Arterial</span><span style="font-weight:500;">${data.consultation.presion_arterial || '-'}</span></div>
+                    <div><span style="color:var(--text-muted); font-size:0.85rem; display:block;">Frecuencia Cardíaca</span><span style="font-weight:500;">${data.consultation.frecuencia_cardiaca || '-'} lpm</span></div>
+                    <div><span style="color:var(--text-muted); font-size:0.85rem; display:block;">Frecuencia Respiratoria</span><span style="font-weight:500;">${data.consultation.frecuencia_respiratoria || '-'} rpm</span></div>
+                    <div><span style="color:var(--text-muted); font-size:0.85rem; display:block;">Temperatura</span><span style="font-weight:500;">${data.consultation.temperatura || '-'} °C</span></div>
+                    <div><span style="color:var(--text-muted); font-size:0.85rem; display:block;">Saturación O2</span><span style="font-weight:500;">${data.consultation.saturacion_oxigeno || '-'} %</span></div>
+                    <div><span style="color:var(--text-muted); font-size:0.85rem; display:block;">Dolor (Escala 1-10)</span><span style="font-weight:500;">${data.consultation.evaluacion_dolor || '-'}</span></div>
+                </div>
+                
+                <h2 style="color:var(--text-main); font-size:1.4rem; border-bottom: 2px solid var(--accent-med); padding-bottom:0.5rem; display:inline-block;">Detalles Clínicos</h2>
+                
+                <div style="margin-top:1rem; margin-bottom:1.5rem;">
+                    <div style="color:var(--text-muted); font-size:0.85rem; margin-bottom:0.2rem;">Motivo de Consulta</div>
+                    <div style="border:1px solid var(--border-light); padding:1rem; border-radius:6px; font-size:0.95rem; line-height:1.5;">${safeMotivo}</div>
+                </div>
+                
+                <div style="margin-bottom:2rem;">
+                    <div style="color:var(--text-muted); font-size:0.85rem; margin-bottom:0.2rem;">Resumen Clínico</div>
+                    <div style="border:1px solid var(--border-light); padding:1rem; border-radius:6px; font-size:0.95rem; line-height:1.5;">${safeResumen}</div>
+                </div>
+
+                ${attachmentsHtml}
+                
+                <!-- Attachment Form for existing consultations -->
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px dashed var(--border-light);">
+                    <form id="attForm" style="display:flex; gap:1rem; align-items:center;">
+                        <input type="file" id="newAttFile" class="form-control" style="flex:1;" accept=".pdf,.png,.jpg,.jpeg">
+                        <button type="button" class="btn btn-outline" onclick="uploadAttachment(${id})" style="white-space:nowrap;">Subir Anexo</button>
+                    </form>
+                </div>
+            `;
+            
+            // Check for remote link
+            if (data.remote_link && data.remote_link.is_active) {
+                showHeaderRemoteLink(data.remote_link.url);
+            }
+            
+            // Inyectar mediciones remotas si existen
+            if (data.remote_measurements && data.remote_measurements.length > 0) {
+                let metricsHtml = `
+                    <h2 style="color:#1e293b !important; font-size:1.4rem; border-bottom: 2px solid var(--accent-med); padding-bottom:0.5rem; display:inline-block; margin-top:2.5rem;">Mediciones Remotas (Paciente)</h2>
+                    <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                `;
+                
+                data.remote_measurements.forEach(m => {
+                    let fieldsHtml = '';
+                    if (m.presion_arterial) fieldsHtml += `<div><span style="color:#475569 !important; font-size:0.8rem; display:block;">Presión Arterial</span><span style="font-weight:500; font-size:0.9rem; color:#1e293b !important;">${m.presion_arterial}</span></div>`;
+                    if (m.glucosa) fieldsHtml += `<div><span style="color:#475569 !important; font-size:0.8rem; display:block;">Glucosa</span><span style="font-weight:500; font-size:0.9rem; color:#1e293b !important;">${m.glucosa} mg/dL</span></div>`;
+                    if (m.oxigeno_sangre) fieldsHtml += `<div><span style="color:#475569 !important; font-size:0.8rem; display:block;">Oxígeno</span><span style="font-weight:500; font-size:0.9rem; color:#1e293b !important;">${m.oxigeno_sangre} %</span></div>`;
+                    if (m.frecuencia_cardiaca) fieldsHtml += `<div><span style="color:#475569 !important; font-size:0.8rem; display:block;">Frec. Cardíaca</span><span style="font-weight:500; font-size:0.9rem; color:#1e293b !important;">${m.frecuencia_cardiaca} lpm</span></div>`;
+                    if (m.peso_actual) fieldsHtml += `<div><span style="color:#475569 !important; font-size:0.8rem; display:block;">Peso</span><span style="font-weight:500; font-size:0.9rem; color:#1e293b !important;">${m.peso_actual} kg</span></div>`;
+                    
+                    let notasHtml = '';
+                    if (m.notas_paciente) {
+                        notasHtml = `<div style="margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px dashed #e2e8f0; font-size: 0.85rem; color:#1e293b !important;"><strong>Notas:</strong> ${m.notas_paciente}</div>`;
+                    }
+                    
+                    metricsHtml += `
+                        <div style="border: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #334155 !important; border-radius: 8px; padding: 1.2rem;">
+                            <div style="font-size: 0.85rem; font-weight: bold; color: #334155 !important; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fa-regular fa-clock"></i> Registrado el ${m.fecha_registro}
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem;">
+                                ${fieldsHtml}
+                            </div>
+                            ${notasHtml}
+                        </div>
+                    `;
+                });
+                metricsHtml += `</div>`;
+                contentDiv.innerHTML += metricsHtml;
+            }
+            
+        } catch(e) {
+            console.error(e);
+            contentDiv.innerHTML = '<p style="color:var(--accent-danger); text-align:center;">Error al cargar detalle de consulta.</p>';
+        }
+    }
+
+    async function generateRemoteLink() {
+        if (!currentConsultationId) return;
+        const btn = document.getElementById('headerGenerateRemoteLinkBtn');
+        btn.disabled = true;
+        btn.textContent = "Generando...";
+
+        try {
+            const res = await fetch(`/api/remote_care/generate/${currentConsultationId}`, { method: 'POST' });
+            const data = await res.json();
+            
+            if (data.success) {
+                showHeaderRemoteLink(data.url);
+            } else {
+                alert('Error: ' + data.error);
+                btn.disabled = false;
+                btn.textContent = "Generar Enlace Remoto";
+            }
+        } catch(e) {
+            console.error(e);
+            alert("Error al contactar al servidor.");
+            btn.disabled = false;
+            btn.textContent = "Generar Enlace Remoto";
+        }
+    }
+
+    function showHeaderRemoteLink(url) {
+        const btn = document.getElementById('headerGenerateRemoteLinkBtn');
+        btn.disabled = true;
+        btn.textContent = "Enlace Generado";
+        const container = document.getElementById('headerRemoteLinkContainer');
+        const urlElem = document.getElementById('headerRemoteLinkUrl');
+        urlElem.textContent = url;
+        container.style.display = 'flex';
+    }
+
+    function copyHeaderRemoteLink() {
+        const url = document.getElementById('headerRemoteLinkUrl').textContent;
+        navigator.clipboard.writeText(url).then(() => {
+            alert("¡Enlace copiado al portapapeles!");
+        });
+    }
+
+    async function uploadAttachment(id) {
+        const fileInput = document.getElementById('newAttFile');
+        if(!fileInput.files.length) {
+            alert("Por favor selecciona un archivo.");
+            return;
+        }
+        const fd = new FormData();
+        fd.append('file', fileInput.files[0]);
+        
+        let initialText = fileInput.nextElementSibling.textContent;
+        fileInput.nextElementSibling.textContent = "Subiendo...";
+        fileInput.nextElementSibling.disabled = true;
+        
+        try {
+            const res = await fetch('/api/consultation_upload/' + id, { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                // Reload this consultation to show the newly added file
+                loadConsultation(id);
+            } else {
+                alert("Error subiendo: " + data.error);
+            }
+        } catch(e) {
+            alert("Error al subir archivo");
+        } finally {
+            fileInput.nextElementSibling.textContent = initialText;
+            fileInput.nextElementSibling.disabled = false;
+        }
+    }
+
+    function exportCurrentPdf() {
+        if (!currentConsultationId) return;
+        window.location.href = '/api/export_consultation_pdf/' + currentConsultationId;
+    }
+
+    function showDeleteModal() {
+        if (!currentConsultationId) return;
+        document.getElementById('deletePassword').value = '';
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function hideDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    async function confirmDelete() {
+        const pwd = document.getElementById('deletePassword').value;
+        if (!pwd) {
+            alert('Debes ingresar tu contraseña.');
+            return;
+        }
+        
+        try {
+            const res = await fetch('/api/consultations/' + currentConsultationId + '/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: pwd })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                hideDeleteModal();
+                alert('Consulta eliminada permanentemente.');
+                currentConsultationId = null;
+                currentPatientId = null;
+                document.getElementById('placeholderText').style.display = 'block';
+                document.getElementById('consultationContent').style.display = 'none';
+                document.getElementById('actionButtons').style.display = 'none';
+                document.getElementById('detailFolio').textContent = 'FOLIO';
+                document.getElementById('detailDate').textContent = 'Selecciona una consulta';
+                fetchConsultations(document.getElementById('consultationSearch').value);
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch(e) {
+            console.error(e);
+            alert('Error contactando al servidor.');
+        }
+    }
+
+    function showShareModal() {
+        if (!currentPatientId) return;
+        document.getElementById('shareUsername').value = '';
+        document.getElementById('shareCedula').value = '';
+        document.getElementById('shareModal').style.display = 'flex';
+    }
+
+    function hideShareModal() {
+        document.getElementById('shareModal').style.display = 'none';
+    }
+
+    async function submitShare() {
+        if (!currentPatientId) return;
+        const targetUsername = document.getElementById('shareUsername').value.trim();
+        const targetCedula = document.getElementById('shareCedula').value.trim();
+        
+        if (!targetUsername || !targetCedula) {
+            alert('Por favor, ingresa tanto el Nombre de Usuario como la Cédula Profesional del médico receptor.');
+            return;
+        }
+        
+        const btn = document.getElementById('shareSubmitBtn');
+        const originalText = btn.textContent;
+        btn.textContent = "Transfiriendo...";
+        btn.disabled = true;
+        
+        try {
+            const res = await fetch('/api/patients/' + currentPatientId + '/share', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    target_username: targetUsername, 
+                    target_cedula: targetCedula 
+                })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                hideShareModal();
+                alert(data.message);
+            } else {
+                alert('Atención: ' + data.error);
+            }
+        } catch(e) {
+            console.error(e);
+            alert('Error contactando al servidor.');
+        } finally {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,1928 @@
+{% extends 'base.html' %}
+{% block title %}Gestor de Expedientes - X-Pedient{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 2rem; height: 75vh;">
+    <!-- Sidebar: Template Gallery -->
+    <div class="card" style="width: 250px; flex-shrink: 0 !important; overflow-y: auto; display: flex; flex-direction: column;">
+        <h3 style="margin-top: 0; border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem;">Plantillas
+            (26+)</h3>
+        <!-- Search bar -->
+        <input type="text" id="templateSearch" class="form-control" placeholder="Buscar formato..."
+            style="margin-bottom: 1rem; padding: 0.5rem; font-size: 0.9rem;">
+
+        <div id="templateList" style="display: flex; flex-direction: column; gap: 0.8rem;">
+            <!-- Botón Constructor de Plantillas -->
+            <button class="btn btn-outline"
+                style="width: 100%; border: 2px dashed var(--accent-med); color: var(--accent-med); background: #f8fafc; text-align: left; padding: 1rem; display: flex; align-items: center; gap: 0.5rem;"
+                onclick="openTemplateBuilder()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <div style="display: flex; flex-direction: column;">
+                    <b style="font-size: 0.95rem;">Nueva Plantilla</b>
+                    <small style="color: var(--text-muted); font-weight: normal;">Personalizada</small>
+                </div>
+            </button>
+            <hr style="border: 0; border-top: 1px solid var(--border-light); margin: 0.5rem 0;">
+
+            <div id="customTemplatesContainer" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+
+            <!-- Template Items -->
+            <div class="template-item" draggable="true" ondragstart="drag(event)" data-type="hoja_frontal"
+                style="padding: 1rem; border: 1px dashed var(--accent-med); border-radius: 8px; cursor: grab; background: #f0f9ff;">
+                <b style="color: var(--accent-med); pointer-events: none;">Hoja Frontal</b>
+                <p style="font-size: 0.8rem; margin: 0.2rem 0 0 0; color: var(--text-muted); pointer-events: none;">
+                    Identificación y datos generales.</p>
+            </div>
+
+            <div class="template-item" draggable="true" ondragstart="drag(event)" data-type="nota_evolucion"
+                style="padding: 1rem; border: 1px dashed var(--accent-green); border-radius: 8px; cursor: grab; background: #f0fdf4;">
+                <b style="color: var(--accent-green); pointer-events: none;">Nota de Evolución</b>
+                <p style="font-size: 0.8rem; margin: 0.2rem 0 0 0; color: var(--text-muted); pointer-events: none;">
+                    Evolución clínica del paciente.</p>
+            </div>
+
+            <div class="template-item" draggable="true" ondragstart="drag(event)" data-type="historia_clinica"
+                style="padding: 1rem; border: 1px dashed #f59e0b; border-radius: 8px; cursor: grab; background: #fef3c7;">
+                <b style="color: #f59e0b; pointer-events: none;">Historia Clínica</b>
+                <p style="font-size: 0.8rem; margin: 0.2rem 0 0 0; color: var(--text-muted); pointer-events: none;">
+                    Antecedentes y ficha de identificación.</p>
+            </div>
+
+            <div class="template-item" draggable="true" ondragstart="drag(event)" data-type="nota_ingreso"
+                style="padding: 1rem; border: 1px dashed #8b5cf6; border-radius: 8px; cursor: grab; background: #f3e8ff;">
+                <b style="color: #8b5cf6; pointer-events: none;">Nota de Ingreso</b>
+                <p style="font-size: 0.8rem; margin: 0.2rem 0 0 0; color: var(--text-muted); pointer-events: none;">
+                    Padecimiento actual y exploración física.</p>
+            </div>
+
+            <div class="template-item" draggable="true" ondragstart="drag(event)" data-type="nota_urgencia"
+                style="padding: 1rem; border: 1px dashed #ef4444; border-radius: 8px; cursor: grab; background: #fee2e2;">
+                <b style="color: #ef4444; pointer-events: none;">Nota Médica de Urgencias</b>
+                <p style="font-size: 0.8rem; margin: 0.2rem 0 0 0; color: var(--text-muted); pointer-events: none;">
+                    Atención de urgencias, Triage y signos vitales.</p>
+            </div>
+
+            <div class="template-item" draggable="true" ondragstart="drag(event)" data-type="nota_postparto"
+                style="padding: 1rem; border: 1px dashed #ec4899; border-radius: 8px; cursor: grab; background: #fce7f3;">
+                <b style="color: #ec4899; pointer-events: none;">Nota Postparto</b>
+                <p style="font-size: 0.8rem; margin: 0.2rem 0 0 0; color: var(--text-muted); pointer-events: none;">
+                    Datos de alumbramiento, Apgar y neonato.</p>
+            </div>
+
+            <div class="template-item" draggable="true" ondragstart="drag(event)" data-type="consentimiento_informado"
+                style="padding: 1rem; border: 1px solid #475569; border-radius: 8px; cursor: grab; background: #f8fafc; border-left: 4px solid #475569;">
+                <b style="color: #334155; pointer-events: none;"><i class="fa-solid fa-scale-balanced"></i>
+                    Consentimiento Informado</b>
+                <p style="font-size: 0.8rem; margin: 0.2rem 0 0 0; color: var(--text-muted); pointer-events: none;">
+                    Documento legal con captura de firmas e INE.</p>
+            </div>
+
+            <!-- Nuevos Módulos Fijos del Sistema -->
+            <div class="template-item" draggable="true" ondragstart="drag(event)" data-type="indicaciones_medicas"
+                style="padding: 1rem; border: 1px dashed #0284c7; border-radius: 8px; cursor: grab; background: #e0f2fe;">
+                <b style="color: #0284c7; pointer-events: none;">Indicaciones Médicas</b>
+                <p style="font-size: 0.8rem; margin: 0.2rem 0 0 0; color: var(--text-muted); pointer-events: none;">
+                    Plan terapéutico y medidas generales.</p>
+            </div>
+
+            <div class="template-item" draggable="true" ondragstart="drag(event)" data-type="referencia_medica"
+                style="padding: 1rem; border: 1px dashed #4f46e5; border-radius: 8px; cursor: grab; background: #e0e7ff;">
+                <b style="color: #4f46e5; pointer-events: none;">Ref. y Contrarreferencia</b>
+                <p style="font-size: 0.8rem; margin: 0.2rem 0 0 0; color: var(--text-muted); pointer-events: none;">
+                    Formato para interconsulta y traslado.</p>
+            </div>
+
+            <div class="template-item" draggable="true" ondragstart="drag(event)" data-type="exploracion_fisica"
+                style="padding: 1rem; border: 1px dashed #db2777; border-radius: 8px; cursor: grab; background: #fce7f3;">
+                <b style="color: #db2777; pointer-events: none;">Exploración Física</b>
+                <p style="font-size: 0.8rem; margin: 0.2rem 0 0 0; color: var(--text-muted); pointer-events: none;">
+                    Examen avanzado y habitus exterior.</p>
+            </div>
+
+
+            <style>
+                .locked-template {
+                    cursor: not-allowed !important;
+                    opacity: 0.6 !important;
+                }
+            </style>
+            <div class="template-item {% if not (current_user.username and current_user.cedula_profesional) %}locked-template{% endif %}"
+                draggable="{{ 'true' if current_user.username and current_user.cedula_profesional else 'false' }}"
+                ondragstart="drag(event)" data-type="receta"
+                style="padding: 1rem; border: 1px solid var(--border-light); border-radius: 8px; cursor: grab; background: #f1f5f9; position: relative;">
+                {% if current_user.username and current_user.cedula_profesional %}
+                <b style="color: #3b82f6; pointer-events: none;">Receta Médica</b>
+                {% else %}
+                <b style="color: var(--text-muted); pointer-events: none;">Receta (Bloqueada)</b>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-danger)"
+                    stroke-width="2" style="position:absolute; right:10px; top:10px;">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                {% endif %}
+                <p style="font-size: 0.8rem; margin: 0.2rem 0 0 0; color: var(--text-muted); pointer-events: none;">
+                    Prescripción detallada.</p>
+            </div>
+
+            <!-- Simulated templates -->
+            <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; margin-top: 1rem;">
+                + 23 plantillas más ocultas
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Canvas -->
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+        <!-- recordCanvas Container -->
+        <div id="recordCanvas" style="display: none; flex-direction: column; flex: 1; min-height: 0;">
+            <div
+                style="background: var(--bg-secondary); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-light); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <b style="color: var(--text-muted);">Expediente Activo</b>
+                    <span id="currentStatusLabel"
+                        style="font-size: 0.85rem; color: var(--accent-med); font-weight: 500;">Nuevo archivo</span>
+                    <input type="hidden" id="currentRecordId" value="">
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <button class="btn btn-outline" onclick="openDirectory()">Directorio de Pacientes</button>
+                    <button class="btn btn-outline" onclick="saveRecord()">Guardar</button>
+                    <button class="btn btn-outline" style="border-color:var(--accent-med); color:var(--accent-med);"
+                        onclick="showShareModal()"><i class="fa-solid fa-share-nodes"></i> Compartir</button>
+                    <button class="btn btn-primary" onclick="exportMasterPDF()">Exportar PDF</button>
+                    <button onclick="closeRecordView()" class="btn btn-outline" style="border:none; color: var(--text-muted); display: flex; align-items: center; gap: 0.25rem;"><i class="fas fa-times"></i> Cerrar</button>
+                </div>
+            </div>
+
+            <form id="recordForm" onsubmit="event.preventDefault();" style="flex: 1; display: flex; flex-direction: column; min-height: 0; margin: 0;">
+                <div id="canvasArea" ondrop="drop(event)" ondragover="allowDrop(event)"
+                    style="flex: 1; background: #e2e8f0; border-radius: 12px; padding: 2rem; overflow-y: auto; overflow-x: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 2rem; align-items: center;">
+                    <div id="placeholderText"
+                        style="color: #94a3b8; margin: auto; font-size: 1.2rem; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                            <polyline points="13 2 13 9 20 9" />
+                        </svg>
+                        Arrastra plantillas aquí
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Estado Vacío (Empty State) -->
+        <div id="emptyStateContainer" style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-light); padding: 3rem; text-align: center;">
+            <div style="background: #e2e8f0; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; border: 1px solid var(--border-light); box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                <i class="fa-regular fa-folder-open" style="font-size: 2.5rem; color: var(--text-muted); opacity: 0.8;"></i>
+            </div>
+            <h3 style="margin-top: 0; margin-bottom: 0.5rem; color: var(--text-main); font-weight: 600;">Ningún expediente seleccionado</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; max-width: 420px; margin-bottom: 2rem; margin-top: 0;">
+                Selecciona un expediente de la lista lateral o crea uno nuevo para comenzar.
+            </p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+                <button class="btn btn-primary" onclick="openDirectory()" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; font-weight: 500;">
+                    <i class="fa-solid fa-folder-open"></i> Directorio de Pacientes
+                </button>
+                <button class="btn btn-outline" onclick="startNewRecord()" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; font-weight: 500; border-color: var(--border-light);">
+                    <i class="fa-solid fa-file-circle-plus"></i> Crear Nuevo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Directorio -->
+<div id="directoryModal"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+    <div class="card"
+        style="width: 600px; height: 80vh; margin: 5vh auto; position: relative; display: flex; flex-direction: column;">
+        <button type="button"
+            style="position:absolute; right:1.5rem; top:1.5rem; background:none; border:none; font-size:1.5rem; cursor:pointer;"
+            onclick="document.getElementById('directoryModal').style.display='none'">&times;</button>
+        <h3 style="margin-top:0;">Directorio de Pacientes y Expedientes</h3>
+        <input type="text" id="patientSearchStr" placeholder="Buscar por Nombre paciente..." class="form-control"
+            style="margin-bottom: 1rem;">
+
+        <div id="recordsList"
+            style="flex:1; overflow-y:auto; border: 1px solid var(--border-light); border-radius:8px; padding: 0.5rem;">
+            <!-- Records via JS -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal Anexos -->
+<div id="attachmentsModal"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+    <div class="card" style="width: 500px; margin: 10vh auto; position: relative;">
+        <button type="button"
+            style="position:absolute; right:1.5rem; top:1.5rem; background:none; border:none; font-size:1.5rem; cursor:pointer;"
+            onclick="document.getElementById('attachmentsModal').style.display='none'">&times;</button>
+        <h3 style="margin-top:0;">Archivos Anexos</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">Sube PDFs de estudios, tomografías, electros, etc. al
+            expediente <b id="attPatientName"></b>.</p>
+
+        <div id="attList" style="margin: 1rem 0; max-height: 200px; overflow-y: auto;"></div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border-light); margin: 1rem 0;">
+        <input type="file" id="uploadFile" class="form-control" style="margin-bottom: 0.5rem;">
+        <button class="btn btn-outline" onclick="uploadAttachment()" style="width: 100%;">Subir Anexo</button>
+    </div>
+</div>
+
+<!-- Modal Template Builder -->
+<div id="templateBuilderModal"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+    <div class="card"
+        style="width: 600px; max-height: 85vh; margin: 5vh auto; position: relative; display: flex; flex-direction: column;">
+        <button type="button"
+            style="position:absolute; right:1.5rem; top:1.5rem; background:none; border:none; font-size:1.5rem; cursor:pointer;"
+            onclick="document.getElementById('templateBuilderModal').style.display='none'">&times;</button>
+        <h3 style="margin-top:0; color: var(--text-main);">Constructor de Plantillas</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Crea un nuevo formato para
+            utilizarlo en tus expedientes.</p>
+
+        <div style="flex:1; overflow-y:auto; padding-right: 0.5rem;">
+            <div class="form-group">
+                <label class="form-label" for="tb_name">Nombre de la Plantilla</label>
+                <input type="text" id="tb_name" class="form-control" placeholder="Ej. Formato Geriatría" required>
+            </div>
+
+            <h4 style="border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem; margin-top: 2rem;">Campos
+                Dinámicos</h4>
+            <div id="tb_fields" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                <!-- Campos aquí -->
+            </div>
+
+            <button class="btn btn-outline"
+                style="width: 100%; border: 1px dashed var(--text-muted); background: var(--bg-secondary);"
+                onclick="addTemplateField()">
+                + Agregar Campo
+            </button>
+        </div>
+
+        <div
+            style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-light); display: flex; justify-content: flex-end; gap: 1rem;">
+            <button class="btn btn-outline"
+                onclick="document.getElementById('templateBuilderModal').style.display='none'">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveCustomTemplate()">Guardar Plantilla</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Record Modal -->
+<div id="deleteRecordModal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 1050; justify-content: center; align-items: center;">
+    <div class="card"
+        style="width: 100%; max-width: 450px; padding: 2.5rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); background: var(--bg-secondary); text-align: center;">
+        <h3
+            style="color: #ef4444; margin-top: 0; font-size: 1.25rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Eliminación Permanente
+        </h3>
+        <p style="color: var(--text-main); font-size: 0.95rem; margin-bottom: 1.5rem;">Esta acción eliminará
+            definitivamente el expediente de <strong id="deleteRecordName"></strong> junto con todos sus anexos. Esta
+            operación es irreversible.</p>
+
+        <input type="hidden" id="deleteRecordId">
+
+        <div class="form-group" style="text-align: left; margin-bottom: 0.5rem; position: relative;">
+            <input type="password" id="deleteRecordPassword" class="form-control"
+                placeholder="Ingresa tu contraseña para confirmar" style="padding-right: 2.5rem;">
+            <button type="button" onclick="togglePasswordVisibility('deleteRecordPassword', this)"
+                style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer;">
+                <i class="fa-regular fa-eye"></i>
+            </button>
+        </div>
+
+        <p id="deleteRecordError"
+            style="color: #ef4444; font-size: 0.85rem; text-align: left; margin: 0 0 1rem 0; display: none;"></p>
+
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button class="btn btn-outline" style="flex: 1; border-color: var(--border-light);"
+                onclick="closeDeleteRecordModal()">Cancelar</button>
+            <button class="btn btn-primary" style="flex: 1; background-color: #ef4444; border-color: #ef4444;"
+                onclick="submitDeleteRecord()">Eliminar Definitivamente</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Template Modal -->
+<div id="deleteTemplateModal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); z-index: 1050; justify-content: center; align-items: center;">
+    <div class="card"
+        style="width: 100%; max-width: 400px; padding: 2.5rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); background: var(--bg-secondary); text-align: center;">
+        <h3 style="color: var(--text-main); margin-top: 0; font-size: 1.25rem;">Eliminar Plantilla</h3>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">Esta acción es permanente.
+            ¿Deseas eliminar la plantilla <strong id="deleteTemplateName"></strong>?</p>
+
+        <input type="hidden" id="deleteTemplateId">
+
+        <div class="form-group" style="text-align: left; margin-bottom: 0.5rem; position: relative;">
+            <input type="password" id="deleteTemplatePassword" class="form-control"
+                placeholder="Contraseña para confirmar" style="padding-right: 2.5rem;">
+            <button type="button" onclick="togglePasswordVisibility('deleteTemplatePassword', this)"
+                style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer;">
+                <i class="fa-regular fa-eye"></i>
+            </button>
+        </div>
+
+        <p id="deleteTemplateError"
+            style="color: #ef4444; font-size: 0.85rem; text-align: left; margin: 0 0 1rem 0; display: none;"></p>
+
+        <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button class="btn btn-outline" style="flex: 1; border-color: var(--border-light);"
+                onclick="closeDeleteTemplateModal()">Cancelar</button>
+            <button class="btn btn-primary" style="flex: 1; background-color: #ef4444; border-color: #ef4444;"
+                onclick="submitDeleteTemplate()">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal (Interconsulta Digital para Records) -->
+<div id="shareModal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="card"
+        style="width: 100%; max-width: 450px; padding: 2.5rem; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);">
+        <h3 style="color: var(--text-main); margin-top: 0; display: flex; align-items: center; gap: 0.5rem;"><i
+                class="fa-solid fa-share-nodes" style="color: var(--accent-med);"></i> Interconsulta Digital</h3>
+
+        <div
+            style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 1rem; margin-bottom: 1.5rem; border-radius: 0 8px 8px 0;">
+            <p style="color: #92400e; font-size: 0.85rem; margin: 0; line-height: 1.4;"><strong>Aviso:</strong> El
+                expediente transferido será una copia profunda independiente. Las modificaciones futuras no se
+                sincronizarán.</p>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" style="font-weight: 600;">Nombre de Usuario del Médico Destino</label>
+            <input type="text" id="shareUsername" class="form-control" placeholder="Ej. Dra. Sanchez">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 2rem;">
+            <label class="form-label" style="font-weight: 600;">Cédula Profesional</label>
+            <input type="text" id="shareCedula" class="form-control" placeholder="Número exacto de cédula">
+        </div>
+
+        <div style="display: flex; gap: 1rem;">
+            <button class="btn btn-outline" style="flex: 1; border-color: var(--border-light);"
+                onclick="hideShareModal()">Cancelar</button>
+            <button id="shareSubmitBtn" class="btn btn-primary" style="flex: 1;" onclick="submitShare()">Transferir
+                Copia</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script>
+    const currentUserFirmaUrl = "{{ url_for('static', filename='uploads/' + current_user.firma_path) if current_user.firma_path else '' }}";
+    let customTemplatesMap = {};
+
+    async function loadCustomTemplates() {
+        try {
+            const res = await fetch('/api/templates');
+            const data = await res.json();
+            const container = document.getElementById('customTemplatesContainer');
+            if (container) {
+                container.innerHTML = '';
+                data.forEach(t => {
+                    customTemplatesMap['custom_' + t.id] = t;
+                    container.innerHTML += `
+                        <div class="template-item" draggable="true" ondragstart="drag(event)" data-type="custom_${t.id}" style="padding: 1rem; border: 1px solid var(--accent-med); border-left: 4px solid var(--accent-med); border-radius: 8px; cursor: grab; background: var(--bg-main); position: relative;" onmouseover="this.querySelector('.delete-btn').style.display='block'" onmouseout="this.querySelector('.delete-btn').style.display='none'">
+                            <button class="delete-btn" onclick="openDeleteTemplateModal(${t.id}, '${t.name}')" style="display: none; position: absolute; right: 0.5rem; top: 0.5rem; background: none; border: none; color: #ef4444; cursor: pointer; padding: 0.2rem;" title="Eliminar plantilla">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
+                            <b style="color: var(--text-main); pointer-events: none;">${t.name}</b>
+                            <p style="font-size: 0.8rem; margin: 0.2rem 0 0 0; color: var(--text-muted); pointer-events: none;">Plantilla Personalizada</p>
+                        </div>
+                    `;
+                });
+            }
+        } catch (e) {
+            console.error("Error loading custom templates:", e);
+        }
+    }
+
+    function openTemplateBuilder() {
+        document.getElementById('tb_name').value = '';
+        document.getElementById('tb_fields').innerHTML = '';
+        addTemplateField();
+        document.getElementById('templateBuilderModal').style.display = 'block';
+    }
+
+    function toggleImageUpload(selectElem) {
+        const container = selectElem.parentElement.nextElementSibling;
+        if (selectElem.value === 'image_field') {
+            container.style.display = 'block';
+        } else {
+            container.style.display = 'none';
+        }
+    }
+
+    function addTemplateField() {
+        const div = document.createElement('div');
+        div.style = "display: flex; gap: 1rem; align-items: flex-end; background: var(--bg-main); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-light); flex-wrap: wrap;";
+        div.innerHTML = `
+            <div style="flex:2; min-width: 200px;">
+                <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Etiqueta (ej. Diagnóstico)</label>
+                <input type="text" class="form-control tb-f-label" required>
+            </div>
+            <div style="flex:1; min-width: 150px;">
+                <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Tipo</label>
+                <select class="form-control tb-f-type" onchange="toggleImageUpload(this)">
+                    <option value="text">Texto corto</option>
+                    <option value="textarea">Párrafo Largo</option>
+                    <option value="number">Numérico</option>
+                    <option value="checkbox">CheckBox</option>
+                    <option value="image_field">Imagen de Referencia + Respuesta</option>
+                    <option value="signature_pad">Firma Interactiva (Pad)</option>
+                </select>
+            </div>
+            <div class="image-upload-container" style="display:none; flex:1; min-width: 200px;">
+                <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Subir Imagen</label>
+                <input type="file" class="form-control tb-f-file" accept=".png, .jpg, .jpeg">
+            </div>
+            <button class="btn btn-outline" style="border-color: var(--accent-danger); color: var(--accent-danger); padding: 0.4rem 0.8rem;" onclick="this.parentElement.remove()">X</button>
+        `;
+        document.getElementById('tb_fields').appendChild(div);
+    }
+
+    function openDeleteTemplateModal(id, name) {
+        document.getElementById('deleteTemplateId').value = id;
+        document.getElementById('deleteTemplateName').textContent = name;
+        document.getElementById('deleteTemplatePassword').value = '';
+        document.getElementById('deleteTemplateError').style.display = 'none';
+        document.getElementById('deleteTemplateModal').style.display = 'flex';
+    }
+
+    function closeDeleteTemplateModal() {
+        document.getElementById('deleteTemplateModal').style.display = 'none';
+    }
+
+    async function submitDeleteTemplate() {
+        const id = document.getElementById('deleteTemplateId').value;
+        const password = document.getElementById('deleteTemplatePassword').value;
+        const errElem = document.getElementById('deleteTemplateError');
+
+        if (!password) {
+            errElem.textContent = "Por favor ingresa tu contraseña.";
+            errElem.style.display = 'block';
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/templates/delete/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                closeDeleteTemplateModal();
+                loadCustomTemplates();
+            } else {
+                errElem.textContent = data.message || data.error || "Error al eliminar plantilla.";
+                errElem.style.display = 'block';
+            }
+        } catch (e) {
+            errElem.textContent = "Error de conexión al servidor.";
+            errElem.style.display = 'block';
+        }
+    }
+
+    async function saveCustomTemplate() {
+        const name = document.getElementById('tb_name').value.trim();
+        if (!name) return alert("El nombre es requerido.");
+
+        const fields = [];
+        const fieldRows = document.getElementById('tb_fields').children;
+
+        const btn = document.querySelector('#templateBuilderModal .btn-primary');
+        const oldBtnText = btn.textContent;
+        btn.textContent = "Guardando...";
+        btn.disabled = true;
+
+        for (let i = 0; i < fieldRows.length; i++) {
+            const label = fieldRows[i].querySelector('.tb-f-label').value.trim();
+            const type = fieldRows[i].querySelector('.tb-f-type').value;
+            let image_url = null;
+
+            if (type === 'image_field') {
+                const fileInput = fieldRows[i].querySelector('.tb-f-file');
+                if (!fileInput.files[0]) {
+                    alert("Selecciona una imagen para el campo: " + label);
+                    btn.textContent = oldBtnText;
+                    btn.disabled = false;
+                    return;
+                }
+                const fd = new FormData();
+                fd.append('file', fileInput.files[0]);
+                try {
+                    const uploadRes = await fetch('/api/upload_template_image', {
+                        method: 'POST',
+                        body: fd
+                    });
+                    const uploadData = await uploadRes.json();
+                    if (uploadData.success) {
+                        image_url = uploadData.filename;
+                    } else {
+                        alert("Error subiendo imagen: " + uploadData.error);
+                        btn.textContent = oldBtnText;
+                        btn.disabled = false;
+                        return;
+                    }
+                } catch (e) {
+                    alert("Error subiendo imagen: " + e);
+                    btn.textContent = oldBtnText;
+                    btn.disabled = false;
+                    return;
+                }
+            }
+
+            if (label) fields.push({ label, type, image_url });
+        }
+
+        if (fields.length === 0) {
+            alert("Agrega al menos un campo.");
+            btn.textContent = oldBtnText;
+            btn.disabled = false;
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/templates/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, fields })
+            });
+            const r = await res.json();
+            if (r.success) {
+                alert("Plantilla creada exitosamente.");
+                document.getElementById('templateBuilderModal').style.display = 'none';
+                loadCustomTemplates();
+            } else {
+                alert("Error: " + r.error);
+            }
+        } catch (e) {
+            alert(e);
+        } finally {
+            btn.textContent = oldBtnText;
+            btn.disabled = false;
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadCustomTemplates();
+    });
+
+    const userVerified = "{{ 'true' if current_user.username and current_user.cedula_profesional else 'false' }}" === "true";
+    const canvasArea = document.getElementById('canvasArea');
+    const placeholder = document.getElementById('placeholderText');
+    let currentOpenedAttachments = null;
+
+    function allowDrop(ev) { ev.preventDefault(); }
+    function drag(ev) { ev.dataTransfer.setData("type", ev.target.getAttribute('data-type')); }
+    function drop(ev) {
+        ev.preventDefault();
+        const type = ev.dataTransfer.getData("type");
+        if (type === 'receta' && !userVerified) {
+            alert('Atención: Receta bloqueada. Registra tu Nombre y Cédula Profesional en tu Perfil.'); return;
+        }
+        if (type) addBlockToCanvas(type);
+    }
+
+    function clearSignature(btn) {
+        const canvas = btn.parentElement.previousElementSibling;
+        if (canvas && canvas._signaturePad) {
+            canvas._signaturePad.clear();
+        }
+    }
+
+    function getSignatureHtml(fname, val, locked) {
+        if (locked) {
+            if (val) {
+                const imgSrc = val.startsWith('data:') ? val : (val.startsWith('/static/') ? val : `/static/uploads/${val}`);
+                return `<div style="text-align:center;"><img src="${imgSrc}" style="max-height: 80px; max-width: 100%; border-bottom: 1px solid #111; padding-bottom: 5px;"></div>`;
+            } else {
+                return `<div style="width: 250px; border-bottom: 1px solid #111; margin: 0 auto;"></div>`;
+            }
+        } else {
+            if (fname === 'im_firma_medico' || fname === 'rm_firma_medico' || fname === 'rc_firma') {
+                return `
+{% if current_user.firma_path %}
+    <div class="doctor-signature-container" style="text-align: center; width: 100%; max-width: 300px; margin: 0 auto;">
+        <div style="height: 120px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid #000; padding-bottom: 5px;">
+            <img src="{{ url_for('static', filename='uploads/' + current_user.firma_path) }}" alt="Firma Digital" style="max-height: 100px; max-width: 100%; object-fit: contain;">
+        </div>
+        <input type="hidden" name="${fname}_tipo" value="precargada">
+        <input type="hidden" name="${fname}_path" value="{{ current_user.firma_path }}">
+    </div>
+{% else %}
+    <div class="signature-pad-wrapper" style="text-align:center; display: flex; flex-direction: column; align-items: center; max-width: 100%; box-sizing: border-box;">
+        <canvas class="signature-pad" data-name="${fname}" id="${fname}Canvas" width="300" height="120" style="border: 1px solid #cbd5e1; border-radius: 8px; cursor: crosshair; background: #fff; touch-action: none; max-width: 100%; box-sizing: border-box;"></canvas>
+        <button type="button" class="btn-clear-signature btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; margin-top: 0.5rem;" onclick="clearSignature(this)">Limpiar</button>
+        <input type="hidden" name="${fname}_tipo" value="canvas">
+    </div>
+{% endif %}
+                `;
+            } else {
+                if (val) {
+                    return `<div style="text-align:center;">
+                                <img src="${val}" style="max-height: 80px; max-width: 100%; border-bottom: 1px solid #111; padding-bottom: 5px;">
+                                <input type="hidden" name="${fname}" value="${val}">
+                            </div>`;
+                } else {
+                    return `<div style="text-align:center; display: flex; flex-direction: column; align-items: center; max-width: 100%; box-sizing: border-box;">
+                                <canvas class="signature-pad" data-name="${fname}" width="400" height="150" style="border: 1px solid var(--border-light); border-radius: 8px; cursor: crosshair; background: #fff; touch-action: none; max-width: 100%; box-sizing: border-box;"></canvas>
+                                <div style="margin-top: 0.5rem;"><button type="button" class="btn-clear-signature btn btn-outline" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;" onclick="clearSignature(this)">Limpiar firma</button></div>
+                            </div>`;
+                }
+            }
+        }
+    }
+
+    function generateHTML(type, values = {}, locked = false) {
+        let html = '';
+        if (type === 'hoja_frontal') {
+            html = `
+                <h2 style="text-align: center; border-bottom: 2px solid black; padding-bottom: 0.5rem; text-transform: uppercase;">HOJA FRONTAL</h2>
+                <div style="display: grid; grid-template-columns: 3fr 2fr; gap: 2rem; margin-top: 1rem;">
+                    <div>
+                        <div style="background:#e2e8f0; color:#111; padding:0.5rem; text-align:center; font-weight:bold; border:1px solid #ccc;">DATOS GENERALES</div>
+                        <div style="border:1px solid #ccc; border-top:none; padding:0.5rem;">
+                            <label style="font-weight:bold; font-size:0.85rem;">NO. FOLIO PADRÓN DE BENEFICIARIOS:</label> <input type="text" class="cnv-input" name="hf_folio" style="width:100%;" value="${values.hf_folio || ''}">
+                        </div>
+                        <div style="border:1px solid #ccc; border-top:none; padding:0.5rem;">
+                            <label style="font-weight:bold; font-size:0.85rem;">NÚMERO DE SEGURIDAD SOCIAL:</label> <input type="text" class="cnv-input" name="hf_nss" style="width:100%;" value="${values.hf_nss || ''}">
+                        </div>
+                        <div style="border:1px solid #ccc; border-top:none; padding:0.5rem;">
+                            <label style="font-weight:bold; font-size:0.85rem;">NOMBRE DEL PACIENTE:</label> <input type="text" class="cnv-input patient-name-input" name="hf_nombre" style="width:100%;" value="${values.hf_nombre || ''}">
+                        </div>
+                        <div style="border:1px solid #ccc; border-top:none; padding:0.5rem;">
+                            <label style="font-weight:bold; font-size:0.85rem;">FECHA DE NACIMIENTO:</label> <input type="date" class="cnv-input" name="hf_fecha_nac" style="width:100%;" value="${values.hf_fecha_nac || ''}">
+                        </div>
+                        <div style="border:1px solid #ccc; border-top:none; padding:0.5rem; display:flex; gap:1rem;">
+                            <div style="flex:1"><label style="font-weight:bold; font-size:0.85rem;">EDAD:</label> <input type="number" class="cnv-input" name="hf_edad" style="width:100%;" value="${values.hf_edad || ''}"></div>
+                            <div style="flex:1"><label style="font-weight:bold; font-size:0.85rem;">SEXO:</label> <input type="text" class="cnv-input" name="hf_sexo" style="width:100%;" value="${values.hf_sexo || ''}"></div>
+                        </div>
+                        <div style="border:1px solid #ccc; border-top:none; padding:0.5rem;">
+                            <label style="font-weight:bold; font-size:0.85rem;">UNIDAD DE ADSCRIPCIÓN (UMR, HR, UMF OTRA):</label> <input type="text" class="cnv-input" name="hf_unidad" style="width:100%;" value="${values.hf_unidad || ''}">
+                        </div>
+                        <div style="border:1px solid #ccc; border-top:none; padding:0.5rem;">
+                            <label style="font-weight:bold; font-size:0.85rem;">LOCALIDAD:</label> <input type="text" class="cnv-input" name="hf_localidad" style="width:100%;" value="${values.hf_localidad || ''}">
+                        </div>
+                        <div style="border:1px solid #ccc; border-top:none; padding:0.5rem;">
+                            <label style="font-weight:bold; font-size:0.85rem;">GRUPO Y RH:</label> <input type="text" class="cnv-input" name="hf_grupo_rh" style="width:100%;" value="${values.hf_grupo_rh || ''}">
+                        </div>
+                        <div style="border:1px solid #ccc; border-top:none; padding:0.5rem;">
+                            <label style="font-weight:bold; font-size:0.85rem;">ALERGIA:</label> <input type="text" class="cnv-input" name="hf_alergias" style="width:100%; color:red" value="${values.hf_alergias || ''}">
+                        </div>
+                        <div style="border:1px solid #ccc; border-top:none; padding:0.5rem;">
+                            <label style="font-weight:bold; font-size:0.85rem;">OTROS:</label> <input type="text" class="cnv-input" name="hf_otros" style="width:100%;" value="${values.hf_otros || ''}">
+                        </div>
+                        <div style="border:1px solid #ccc; border-top:none; padding:0.5rem;">
+                            <label style="font-weight:bold; font-size:0.85rem;">MÉDICO TRATANTE:</label> <input type="text" class="cnv-input" name="hf_medico" style="width:100%;" value="${values.hf_medico || ''}">
+                        </div>
+                    </div>
+                    <div>
+                        <div style="background:#e2e8f0; color:#111; padding:0.5rem; text-align:center; font-weight:bold; border:1px solid #ccc; font-size:0.8rem;">ORDEN DEL EXPEDIENTE CLÍNICO UAP, BI, UAM CARO:</div>
+                        <div style="border:1px solid #ccc; border-top:none; padding:0.5rem; font-size:0.75rem; line-height:1.5; color:var(--text-main);">
+                            1. Hoja frontal<br>
+                            2. Historia clínica<br>
+                            3. Notas de evolución (orden cronológico, antiguo - reciente)<br>
+                            4. Nota de referencia y/o traslado (resumen clínico)<br>
+                            5. MF5-2000<br>
+                            6. Detección oportuna Ca. mama<br>
+                            7. Prueba ácido acético<br>
+                            8. Formato DT23<br>
+                            9. Registros de estomatología<br>
+                            10. Fórmula de registros de enfermería del 1er nivel de atención (orden cronológico, antiguo - reciente)<br>
+                            11. Servicios auxiliares de diagnóstico en orden cronológico (laboratorio, gasometría, USG). Incluye resultados de citología, BAAR, tamiz neonatal.<br>
+                            12. Consentimiento informado: planificación familiar, para estudio de VH, para traslado a otra unidad de salud, para inmovilización de pacientes por condición de salud, para vacunación, para uso de sucedáneos de leche materna, para procedimientos invasivos, para la atención estomatológica.<br>
+                            13. Notificación al ministerio público<br>
+                            14. Reporte de registros padecimientos sujetos a vig. epidemiológica<br>
+                            15. Nota de defunción y/o muerte Fetal<br>
+                            16. Hoja de atención de recién nacido<br>
+                            17. Certificado de nacimiento y/o certificado de defunción<br>
+                            18. Herramientas de detecciones (herramienta de detección de Violencia, conductas alimentarias de riesgo, trastornos por el consumo de alcohol, AUDIT, por consumo tabaco-F agresor, dependencia a drogas, diabetes mellitus, hipertensión arterial, otras)<br>
+                            19. Póliza afiliación alguna institución de salud<br>
+                            20. Otros
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (type === 'historia_clinica') {
+            html = `
+                <h2 style="text-align: center; border-bottom: 2px solid black; padding-bottom: 0.5rem; text-transform: uppercase;">HISTORIA CLÍNICA</h2>
+                <!-- FICHA -->
+                <div style="margin-top:1rem; border:1px solid #ccc;">
+                    <div style="background:#e2e8f0; color:#111; padding:0.5rem; text-align:center; font-weight:bold; border-bottom:1px solid #ccc;">FICHA DE IDENTIFICACIÓN</div>
+                    <div style="padding:0.5rem; display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:0.5rem; border-bottom:1px solid #ccc;">
+                        <div><b>Nacimiento:</b> <input type="date" class="cnv-input" name="hc_nacimiento" style="width:100%" value="${values.hc_nacimiento || ''}"></div>
+                        <div><b>Edad:</b> <input type="number" class="cnv-input" name="hc_edad" style="width:100%" value="${values.hc_edad || ''}"></div>
+                        <div><b>Género:</b> <input type="text" class="cnv-input" name="hc_genero" style="width:100%" value="${values.hc_genero || ''}"></div>
+                        <div><b>Religión:</b> <input type="text" class="cnv-input" name="hc_religion" style="width:100%" value="${values.hc_religion || ''}"></div>
+                    </div>
+                    <div style="padding:0.5rem; display:grid; grid-template-columns: 1fr 1fr 2fr; gap:0.5rem; border-bottom:1px solid #ccc;">
+                        <div><b>Discapacidad:</b> <input type="text" class="cnv-input" name="hc_discapacidad" style="width:100%" placeholder="Sí/No" value="${values.hc_discapacidad || ''}"></div>
+                        <div><b>Idioma:</b> <input type="text" class="cnv-input" name="hc_idioma" style="width:100%" value="${values.hc_idioma || ''}"></div>
+                        <div><b>Informante:</b> <input type="text" class="cnv-input" name="hc_informante" style="width:100%" value="${values.hc_informante || ''}"></div>
+                    </div>
+                    <div style="padding:0.5rem; border-bottom:1px solid #ccc;">
+                        <b>Padecimientos heredofamiliares:</b> 
+                        <input type="text" class="cnv-input" name="hc_phf" style="width:100%" placeholder="Ej: Diabéticos, Cardiópatas, Hipertensión..." value="${values.hc_phf || ''}">
+                    </div>
+                    <div style="padding:0.5rem;">
+                        <b>Contacto con enf. infecciosas:</b> <input type="text" class="cnv-input" name="hc_infecciosas" style="width:70%" value="${values.hc_infecciosas || ''}">
+                    </div>
+                </div>
+                <!-- HEREDOFAMILIARES -->
+                <div style="margin-top:1rem; border:1px solid #ccc;">
+                    <div style="background:#e2e8f0; color:#111; padding:0.5rem; text-align:center; font-weight:bold; border-bottom:1px solid #ccc;">ANTECEDENTES HEREDOFAMILIARES</div>
+                    <div style="padding:0.5rem; border-bottom:1px solid #ccc;">
+                        <b>MADRE:</b><br>
+                        Vive/Edad/Escolaridad/Ocupación: <input type="text" class="cnv-input" name="hc_madre_datos" style="width:100%" value="${values.hc_madre_datos || ''}"><br>
+                        G/P/A/C: <input type="text" class="cnv-input" name="hc_madre_gpac" style="width:100%" value="${values.hc_madre_gpac || ''}"><br>
+                        Toxicomanías: <input type="text" class="cnv-input" name="hc_madre_tox" style="width:100%" value="${values.hc_madre_tox || ''}">
+                    </div>
+                    <div style="padding:0.5rem; border-bottom:1px solid #ccc;">
+                        <b>PADRE:</b><br>
+                        Vive/Edad/Escolaridad/Ocupación: <input type="text" class="cnv-input" name="hc_padre_datos" style="width:100%" value="${values.hc_padre_datos || ''}"><br>
+                        G/P/A/C: <input type="text" class="cnv-input" name="hc_padre_gpac" style="width:100%" value="${values.hc_padre_gpac || ''}"><br>
+                        Toxicomanías: <input type="text" class="cnv-input" name="hc_padre_tox" style="width:100%" value="${values.hc_padre_tox || ''}">
+                    </div>
+                    <div style="padding:0.5rem;">
+                        <b>HERMANOS:</b><br>
+                        Número/Vivos/Muertos/Causas: <textarea class="cnv-input autosize" name="hc_hermanos" style="width:100%;" rows="2">${values.hc_hermanos || ''}</textarea>
+                    </div>
+                </div>
+                <!-- NO PATOLOGICOS -->
+                <div style="margin-top:1rem; border:1px solid #ccc;">
+                    <div style="background:#e2e8f0; color:#111; padding:0.5rem; text-align:center; font-weight:bold; border-bottom:1px solid #ccc;">ANTECEDENTES PERSONALES NO PATOLÓGICOS</div>
+                    <div style="padding:0.5rem;">
+                        <textarea class="cnv-input autosize" name="hc_apnp" style="width:100%;" rows="3" placeholder="Embarazo, Perinatales, Desarrollo...">${values.hc_apnp || ''}</textarea>
+                    </div>
+                </div>
+            `;
+        } else if (type === 'nota_ingreso') {
+            html = `
+                <h2 style="text-align: center; border-bottom: 2px solid black; padding-bottom: 0.5rem; text-transform: uppercase;">NOTA DE INGRESO</h2>
+                <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1rem; margin-top:1rem;">
+                    <div><b>NOMBRE:</b> <input type="text" class="cnv-input patient-name-input" name="ni_nombre" style="width:100%" value="${values.ni_nombre || ''}"></div>
+                    <div><b>NSS:</b> <input type="text" class="cnv-input" name="ni_nss" style="width:100%" value="${values.ni_nss || ''}"></div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1rem; margin-top:0.5rem;">
+                    <div><b>FECHA INGRESO:</b> <input type="date" class="cnv-input" name="ni_fecha" style="width:100%" value="${values.ni_fecha || ''}"></div>
+                    <div><b>CAMA:</b> <input type="text" class="cnv-input" name="ni_cama" style="width:100%" value="${values.ni_cama || ''}"></div>
+                    <div><b>EDAD:</b> <input type="number" class="cnv-input" name="ni_edad" style="width:100%" value="${values.ni_edad || ''}"></div>
+                </div>
+                <!-- AHF -->
+                <div style="margin-top:1.5rem; border:1px solid #ccc;">
+                    <div style="background:#e2e8f0; color:#111; padding:0.5rem; text-align:center; font-weight:bold; border-bottom:1px solid #ccc;">ANTECEDENTES HEREDOFAMILIARES</div>
+                    <div style="padding:0.5rem; display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:0.5rem;">
+                        <div><b>DM:</b> <input type="text" class="cnv-input" name="ni_ahf_dm" style="width:100%" value="${values.ni_ahf_dm || ''}"></div>
+                        <div><b>HTA:</b> <input type="text" class="cnv-input" name="ni_ahf_hta" style="width:100%" value="${values.ni_ahf_hta || ''}"></div>
+                        <div><b>CA:</b> <input type="text" class="cnv-input" name="ni_ahf_ca" style="width:100%" value="${values.ni_ahf_ca || ''}"></div>
+                        <div><b>INFARTOS:</b> <input type="text" class="cnv-input" name="ni_ahf_inf" style="width:100%" value="${values.ni_ahf_inf || ''}"></div>
+                    </div>
+                </div>
+                <!-- APNP -->
+                <div style="margin-top:1rem; border:1px solid #ccc;">
+                    <div style="background:#e2e8f0; color:#111; padding:0.5rem; text-align:center; font-weight:bold; border-bottom:1px solid #ccc;">ANTECEDENTES PERSONALES NO PATOLÓGICOS</div>
+                    <div style="padding:0.5rem;">
+                        <textarea class="cnv-input autosize" name="ni_apnp" style="width:100%;" rows="2" placeholder="Originario de, Escolaridad, Habitación, Alimentación...">${values.ni_apnp || ''}</textarea>
+                    </div>
+                </div>
+                <!-- APP -->
+                <div style="margin-top:1rem; border:1px solid #ccc;">
+                    <div style="background:#e2e8f0; color:#111; padding:0.5rem; text-align:center; font-weight:bold; border-bottom:1px solid #ccc;">ANTECEDENTES PERSONALES PATOLÓGICOS</div>
+                    <div style="padding:0.5rem;">
+                        <textarea class="cnv-input autosize" name="ni_app" style="width:100%;" rows="2" placeholder="Tabaquismo, Alcoholismo, Alergias, otros...">${values.ni_app || ''}</textarea>
+                    </div>
+                </div>
+                <!-- PADECIMIENTO ACTUAL -->
+                <div style="margin-top:1rem; border:1px solid #ccc;">
+                    <div style="background:#e2e8f0; color:#111; padding:0.5rem; text-align:center; font-weight:bold; border-bottom:1px solid #ccc;">PADECIMIENTO ACTUAL</div>
+                    <div style="padding:0.5rem;">
+                        <textarea class="cnv-input autosize" name="ni_padecimiento" style="width:100%;" rows="3">${values.ni_padecimiento || ''}</textarea>
+                    </div>
+                </div>
+                <!-- EXPLORACION -->
+                <div style="margin-top:1rem; border:1px solid #ccc;">
+                    <div style="background:#e2e8f0; color:#111; padding:0.5rem; text-align:center; font-weight:bold; border-bottom:1px solid #ccc;">EXPLORACIÓN FÍSICA</div>
+                    <div style="padding:0.5rem;">
+                        <textarea class="cnv-input autosize" name="ni_exploracion" style="width:100%;" rows="4">${values.ni_exploracion || ''}</textarea>
+                    </div>
+                </div>
+                <!-- DX / PLAN -->
+                <div style="margin-top:1rem; border:1px solid #ccc;">
+                    <div style="padding:0.5rem; border-bottom:1px solid #ccc;"><b>PLAN:</b> <textarea class="cnv-input autosize" name="ni_plan" style="width:100%;" rows="2">${values.ni_plan || ''}</textarea></div>
+                    <div style="padding:0.5rem; border-bottom:1px solid #ccc;"><b>DX:</b> <textarea class="cnv-input autosize" name="ni_dx" style="width:100%;" rows="2">${values.ni_dx || ''}</textarea></div>
+                    <div style="padding:0.5rem;"><b>PRONÓSTICO:</b> <textarea class="cnv-input autosize" name="ni_pronostico" style="width:100%;" rows="2">${values.ni_pronostico || ''}</textarea></div>
+                </div>
+            `;
+        } else if (type === 'nota_urgencia') {
+            html = `
+                <h2 style="text-align: center; font-weight:bold; text-transform: uppercase;">NOTA MÉDICA DE URGENCIAS</h2>
+                <div style="font-size:0.9rem;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span><b>NSS:</b> <input type="text" class="cnv-input" name="nu_nss" value="${values.nu_nss || ''}"></span>
+                        <span><b>A. MÉD.:</b> <input type="text" class="cnv-input" name="nu_amed" value="${values.nu_amed || ''}"></span>
+                        <span><b>NOMBRE:</b> <input type="text" class="cnv-input patient-name-input" name="nu_nombre" value="${values.nu_nombre || ''}"></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:0.5rem;">
+                        <span><b>FECHA Y HORA:</b> <input type="text" class="cnv-input" name="nu_fecha_hora" value="${values.nu_fecha_hora || ''}"></span>
+                        <span><b>PESO/TALLA/TEMP:</b> <input type="text" class="cnv-input" name="nu_somat" value="${values.nu_somat || ''}"></span>
+                        <span><b>PA/FC/FR/GLU:</b> <input type="text" class="cnv-input" name="nu_signos" value="${values.nu_signos || ''}"></span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:0.5rem;">
+                        <span><b>TRIAGE:</b> <input type="text" class="cnv-input" name="nu_triage" value="${values.nu_triage || ''}"></span>
+                        <span><b>HORA ATENCIÓN:</b> <input type="text" class="cnv-input" name="nu_hora_atn" value="${values.nu_hora_atn || ''}"></span>
+                    </div>
+                </div>
+                
+                <h3 style="border-bottom:1px solid #ccc; margin-top:1.5rem;">RESUMEN CLÍNICO</h3>
+                <div style="margin-top:0.5rem;">
+                    <b>MOTIVO DE CONSULTA:</b> <input type="text" class="cnv-input" name="nu_motivo" style="width:100%" value="${values.nu_motivo || ''}"><br>
+                    <b>ALERGIAS:</b> <input type="text" class="cnv-input" name="nu_alergias" style="width:100%" value="${values.nu_alergias || ''}"><br>
+                    <b>QUIRÚRGICOS/TRAUM:</b> <input type="text" class="cnv-input" name="nu_qm" style="width:100%" value="${values.nu_qm || ''}">
+                </div>
+                <div style="margin-top:1rem;">
+                    <b>PADECIMIENTO ACTUAL:</b>
+                    <textarea class="cnv-input autosize" name="nu_padecimiento" style="width:100%;" rows="3">${values.nu_padecimiento || ''}</textarea>
+                </div>
+                <div style="margin-top:1rem;">
+                    <b>EXPLORACIÓN FÍSICA:</b>
+                    <textarea class="cnv-input autosize" name="nu_exploracion" style="width:100%;" rows="3">${values.nu_exploracion || ''}</textarea>
+                </div>
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:2rem; margin-top:1rem;">
+                    <div><b>DIAGNÓSTICO:</b> <textarea class="cnv-input autosize" name="nu_dx" style="width:100%;" rows="2">${values.nu_dx || ''}</textarea></div>
+                    <div><b>COMPLEMENTOS DX:</b> <textarea class="cnv-input autosize" name="nu_cdx" style="width:100%;" rows="2">${values.nu_cdx || ''}</textarea></div>
+                </div>
+                
+                <div style="margin-top:1rem;">
+                    <b>PLAN:</b>
+                    <textarea class="cnv-input autosize" name="nu_plan" style="width:100%;" rows="3">${values.nu_plan || ''}</textarea>
+                </div>
+                <div style="margin-top:1rem; display:flex; justify-content:space-between;">
+                    <span><b>TIPO DE URGENCIAS (Real/No Real):</b> <input type="text" class="cnv-input" name="nu_tipo" value="${values.nu_tipo || ''}"></span>
+                    <span><b>PRONÓSTICO:</b> <input type="text" class="cnv-input" name="nu_pronostico" value="${values.nu_pronostico || ''}"></span>
+                </div>
+                <div style="margin-top:2rem; text-align:center;">
+                    ${getSignatureHtml('nu_firma', values.nu_firma || currentUserFirmaUrl, locked)}
+                    <div style="margin-top: 0.5rem; font-weight: bold;">NOMBRE Y FIRMA MÉDICO TRATANTE</div>
+                    <input type="text" class="cnv-input" name="nu_medico" value="${values.nu_medico || ''}" placeholder="Dr. Nombre / Cédula" style="text-align:center; width:60%; margin-top: 0.5rem;">
+                </div>
+            `;
+        } else if (type === 'nota_postparto') {
+            html = `
+                <h2 style="text-align: center; border-bottom: 2px solid black; padding-bottom: 0.5rem; text-transform: uppercase;">NOTA POSTPARTO</h2>
+                <div style="border: 1px solid #ccc; padding:0.5rem;">
+                    <div><b>NOMBRE:</b> <input type="text" class="cnv-input patient-name-input" name="np_nombre" style="width:60%" value="${values.np_nombre || ''}"> <b>EDAD:</b> <input type="number" class="cnv-input" name="np_edad" style="width:15%" value="${values.np_edad || ''}"></div>
+                    <div><b>AFILIACIÓN:</b> <input type="text" class="cnv-input" name="np_afiliacion" style="width:100%" value="${values.np_afiliacion || ''}"></div>
+                    <div><b>DIAGNÓSTICO:</b> <input type="text" class="cnv-input" name="np_dx" style="width:100%" value="${values.np_dx || ''}"></div>
+                </div>
+                
+                <div style="border: 1px solid #ccc; padding:0.5rem; margin-top:1rem; display:flex; justify-content:space-between;">
+                    <span><b>FECHA/HORA:</b> <input type="text" class="cnv-input" name="np_fechahora" value="${values.np_fechahora || ''}"></span>
+                    <span><b>SIGNOS:</b> <input type="text" class="cnv-input" name="np_signos" placeholder="TA/FC/FR/TEMP" value="${values.np_signos || ''}"></span>
+                </div>
+                
+                <div style="border: 1px solid #ccc; margin-top:1rem;">
+                    <div style="background:#e2e8f0; color:#111; padding:0.5rem; font-weight:bold; border-bottom:1px solid #ccc;">NOTA POSTPARTO</div>
+                    <div style="padding:0.5rem;">
+                        <textarea class="cnv-input autosize" name="np_nota" style="width:100%;" rows="6" placeholder="Paciente de X años, gesta X, conducción de trabajo de parto... se obtiene producto... revisión vaginal...">${values.np_nota || ''}</textarea>
+                    </div>
+                </div>
+
+                <div style="border: 1px solid #ccc; margin-top:1rem;">
+                    <div style="background:#e2e8f0; color:#111; padding:0.5rem; font-weight:bold; border-bottom:1px solid #ccc;">PRODUCTO</div>
+                    <div style="padding:0.5rem; display:flex; gap:1rem; flex-wrap:wrap;">
+                        <span><b>Sexo:</b> <input type="text" class="cnv-input" name="np_psexo" size="10" value="${values.np_psexo || ''}"></span>
+                        <span><b>Peso:</b> <input type="text" class="cnv-input" name="np_ppeso" size="10" value="${values.np_ppeso || ''}"> kg</span>
+                        <span><b>Talla:</b> <input type="text" class="cnv-input" name="np_ptalla" size="10" value="${values.np_ptalla || ''}"> cm</span><br>
+                        <span><b>Apgar:</b> <input type="text" class="cnv-input" name="np_apgar" size="10" value="${values.np_apgar || ''}"></span>
+                        <span><b>S/A:</b> <input type="text" class="cnv-input" name="np_sa" size="10" value="${values.np_sa || ''}"></span>
+                        <span><b>Capurro:</b> <input type="text" class="cnv-input" name="np_capurro" size="10" value="${values.np_capurro || ''}"></span>
+                        <span><b>Hora Nacimiento:</b> <input type="text" class="cnv-input" name="np_pnac" size="10" value="${values.np_pnac || ''}"></span>
+                    </div>
+                </div>
+
+                <div style="border: 1px solid #ccc; margin-top:1rem;">
+                    <div style="padding:0.5rem; display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+                        <div><b>Episiotomía/Prolong:</b> <input type="text" class="cnv-input" name="np_epi" style="width:100%" value="${values.np_epi || ''}"></div>
+                        <div><b>Revisión Vaginal/Desgarros:</b> <input type="text" class="cnv-input" name="np_vag" style="width:100%" value="${values.np_vag || ''}"></div>
+                        <div><b>Fórceps/Motivo:</b> <input type="text" class="cnv-input" name="np_forceps" style="width:100%" value="${values.np_forceps || ''}"></div>
+                        <div><b>Sangrado aprox/MPF:</b> <input type="text" class="cnv-input" name="np_sangrado" style="width:100%" value="${values.np_sangrado || ''}"></div>
+                    </div>
+                </div>
+                <div style="border: 1px solid #ccc; border-top:none; padding:0.5rem;">
+                    <b>Complicaciones:</b> <textarea class="cnv-input autosize" name="np_comp" style="width:100%;" rows="2">${values.np_comp || ''}</textarea><br>
+                    <b>Diagnóstico final:</b> <textarea class="cnv-input autosize" name="np_dxfinal" style="width:100%;" rows="2">${values.np_dxfinal || ''}</textarea>
+                </div>
+                
+                <div style="border: 1px solid #ccc; margin-top:1rem;">
+                    <div style="background:#e2e8f0; color:#111; padding:0.5rem; text-align:center; font-weight:bold; border-bottom:1px solid #ccc;">INDICACIONES</div>
+                    <div style="padding:0.5rem;">
+                        <textarea class="cnv-input autosize" name="np_indicaciones" style="width:100%;" rows="6" placeholder="1. AHNO ... ">${values.np_indicaciones || ''}</textarea>
+                    </div>
+                </div>
+            `;
+        } else if (type === 'consentimiento_informado') {
+            html = `
+                <h2 style="text-align: center; border-bottom: 2px solid black; padding-bottom: 0.5rem; text-transform: uppercase;">CONSENTIMIENTO INFORMADO DEL PACIENTE</h2>
+                
+                <div style="margin-top: 1rem; border: 1px solid #ccc; padding: 1rem; background: #f8fafc; border-radius: 8px;">
+                    <h3 style="margin-top: 0; color: #334155;">Datos del Médico Tratante</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                        <div><label style="color: #64748b; font-size: 0.85rem;">Nombre</label><br><b>{{ current_user.username }}</b></div>
+                        <div><label style="color: #64748b; font-size: 0.85rem;">Especialidad</label><br><b>{{ current_user.especialidad_principal or "Médico General" }}</b></div>
+                        <div><label style="color: #64748b; font-size: 0.85rem;">Cédula Profesional</label><br><b>{{ current_user.cedula_profesional }}</b></div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px;">
+                    <h3 style="margin-top: 0; color: #334155;">Datos del Paciente</h3>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem;">
+                        <div><label>Nombre Completo:</label> <input type="text" class="cnv-input patient-name-input" name="ci_paciente" style="width:100%; font-weight:bold;" value="${values.ci_paciente || ''}"></div>
+                        <div><label>Diagnóstico:</label> <input type="text" class="cnv-input" name="ci_dx" style="width:100%;" value="${values.ci_dx || ''}"></div>
+                    </div>
+                    ${locked ?
+                    (values.ci_ine_url ? '<div style="margin-top: 1.5rem;"><a href="/static/uploads/' + values.ci_ine_url + '" target="_blank" class="btn btn-outline" style="text-decoration: none;"><i class="fa-solid fa-id-card"></i> Ver Identificación Oficial (INE/Pasaporte)</a></div>' : '')
+                    :
+                    '<div style="margin-top: 1.5rem; background: #f0fdf4; padding: 1rem; border-radius: 8px; border: 1px dashed #22c55e;">' +
+                    '<label style="font-weight: 600; color: #15803d; display: block; margin-bottom: 0.5rem;"><i class="fa-solid fa-upload"></i> Subir Identificación Oficial (INE/Pasaporte)</label>' +
+                    '<input type="file" name="ci_ine_file" accept=".pdf,.png,.jpg,.jpeg" class="form-control" style="background: white;">' +
+                    '<input type="hidden" name="ci_ine_url" value="' + (values.ci_ine_url || '') + '">' +
+                    '</div>'
+                }
+                </div>
+
+                <div style="margin-top: 1.5rem; text-align: justify; line-height: 1.6; font-size: 0.95rem;">
+                    <p>Por este conducto, yo, el paciente arriba mencionado, en pleno uso de mis facultades mentales, otorgo mi <b>Consentimiento Informado</b> para recibir atención médica por parte del profesional indicado.</p>
+                    <p>He sido informado(a) de manera clara, veraz y suficiente sobre mi diagnóstico, el plan de tratamiento propuesto, los riesgos inherentes, las alternativas disponibles y los posibles efectos secundarios o complicaciones que pudieran presentarse.</p>
+                    <p style="background: #fffbeb; padding: 1rem; border-left: 4px solid #f59e0b; border-radius: 4px;">
+                        <b>Cláusula de Uso de Plataforma Digital:</b><br>
+                        El paciente declara su plena conformidad y acuerdo con el uso de la plataforma <b>X-PEDIENT</b> para la gestión, procesamiento y almacenamiento de su información clínica y datos personales. El paciente entiende que su Expediente Clínico Electrónico será resguardado bajo estrictos estándares de confidencialidad en dicha plataforma tecnológica, en cumplimiento con las normativas vigentes de protección de datos en salud.
+                    </p>
+                    <p>Autorizo al personal médico y de apoyo a realizar los procedimientos diagnósticos y terapéuticos que se consideren necesarios para preservar mi salud y bienestar.</p>
+                </div>
+
+                <div style="margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div style="text-align: center;">
+                        ${getSignatureHtml('ci_firma_paciente', values.ci_firma_paciente, locked)}
+                        <div style="margin-top: 0.5rem; font-weight: bold; border-top: 1px solid #111; padding-top: 0.5rem;">Firma del Paciente</div>
+                    </div>
+                    <div style="text-align: center;">
+                        ${getSignatureHtml('ci_firma_medico', values.ci_firma_medico || currentUserFirmaUrl, locked)}
+                        <div style="margin-top: 0.5rem; font-weight: bold; border-top: 1px solid #111; padding-top: 0.5rem;">Firma del Médico</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div style="text-align: center;">
+                        ${getSignatureHtml('ci_firma_testigo1', values.ci_firma_testigo1, locked)}
+                        <div style="margin-top: 0.5rem; font-weight: bold; border-top: 1px solid #111; padding-top: 0.5rem;">Firma Testigo 1</div>
+                        <input type="text" class="cnv-input" name="ci_nombre_testigo1" value="${values.ci_nombre_testigo1 || ''}" placeholder="Nombre del Testigo 1" style="width: 100%; margin-top: 0.5rem; text-align: center;">
+                    </div>
+                    <div style="text-align: center;">
+                        ${getSignatureHtml('ci_firma_testigo2', values.ci_firma_testigo2, locked)}
+                        <div style="margin-top: 0.5rem; font-weight: bold; border-top: 1px solid #111; padding-top: 0.5rem;">Firma Testigo 2</div>
+                        <input type="text" class="cnv-input" name="ci_nombre_testigo2" value="${values.ci_nombre_testigo2 || ''}" placeholder="Nombre del Testigo 2" style="width: 100%; margin-top: 0.5rem; text-align: center;">
+                    </div>
+                </div>
+            `;
+        } else if (type === 'nota_evolucion') {
+            html = `
+                <h2 style="text-align: center; border-bottom: 2px solid black; padding-bottom: 0.5rem; text-transform: uppercase;">Nota de Evolución Clínica</h2>
+                <div style="margin-top: 2rem;">
+                    <label>Signos vitales:</label> <input type="text" class="cnv-input" name="ne_signos" style="width:100%;" placeholder="TA, FC, FR, Temp" value="${values.ne_signos || ''}">
+                </div>
+                <div style="margin-top: 1rem;">
+                    <label>Evolución y Estado Actual:</label>
+                    <textarea class="cnv-input" name="ne_evolucion" rows="6" style="width:100%; resize:vertical;">${values.ne_evolucion || ''}</textarea>
+                </div>
+            `;
+        } else if (type === 'receta') {
+            html = `
+                <div style="background-color: #ffffff; color: #111111; padding: 1rem; border: 1px solid #ccc;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #000; padding-bottom: 0.5rem; margin-bottom: 1rem; font-size: 0.85rem;">
+                        <div style="flex:1;">
+                            <b style="font-size: 1rem; color: #111;">{{ current_user.especialidad_principal ~ ' ' if current_user.especialidad_principal else '' }}{{ 'Dr.' if current_user.sexo == 'Masculino' else 'Dra.' if current_user.sexo == 'Femenino' else 'Dr(a).' }} {{ current_user.username }}</b><br>
+                            <span style="font-size: 0.85rem; color: #333;">Cédula: {{ current_user.cedula_profesional }} {{ ' | Teléfono: ' ~ current_user.telefono if current_user.telefono else '' }}</span><br>
+                            <span style="font-size: 0.85rem; color: #333;">{{ 'Domicilio: ' ~ current_user.direccion_consultorio if current_user.direccion_consultorio else '' }}</span>
+                        </div>
+                    </div>
+                    
+                    <h2 style="text-align: center; color: #111; font-family: sans-serif; font-size: 1.2rem; text-transform: uppercase;">Receta Médica</h2>
+                    
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem; margin-bottom: 0.5rem; border-bottom:1px solid #eee; padding-bottom:0.8rem;">
+                        <div><label style="color: #333;">Paciente:</label> <input type="text" class="cnv-input patient-name-input" name="rc_paciente" style="width:100%; font-weight:bold; color: #111;" value="${values.rc_paciente || ''}"></div>
+                        <div><label style="color: #333;">Edad:</label> <input type="text" class="cnv-input" name="rc_edad" style="width:100%; color: #111;" value="${values.rc_edad || ''}"></div>
+                        <div><label style="color: #333;">Fecha:</label> <input type="date" class="cnv-input" name="rc_fecha" style="width:100%; color: #111;" value="${values.rc_fecha || ''}"></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 2fr; gap: 1rem; margin-bottom: 1rem; background: #fafafa; border-radius: 6px; padding: 0.8rem; border: 1px solid #eee;">
+                        <div><label style="color: #333;">Peso (kg):</label> <input type="number" step="0.1" class="cnv-input" name="rc_peso" style="width:100%; color: #111;" value="${values.rc_peso || ''}" placeholder="Ej. 70.5"></div>
+                        <div><label style="color: #333;">Altura (m):</label> <input type="number" step="0.01" class="cnv-input" name="rc_talla" style="width:100%; color: #111;" value="${values.rc_talla || ''}" placeholder="Ej. 1.75"></div>
+                        <div><label style="color: #333;">IMC:</label> <input type="text" class="cnv-input" name="rc_imc" style="width:100%; background-color: #e2e8f0; cursor: not-allowed; color: #111;" value="${values.rc_imc || ''}" readonly></div>
+                        <div><label style="color: #333;">Temp / TA:</label> <input type="text" class="cnv-input" name="rc_signos" style="width:100%; color: #111;" value="${values.rc_signos || ''}"></div>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label style="color: #333;">Diagnóstico:</label> <input type="text" class="cnv-input" name="rc_diagnostico" style="width:100%; font-weight:500; color: #111;" value="${values.rc_diagnostico || ''}">
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <label style="color: #333;">Prescripción Farmacológica:</label>
+                        <textarea class="cnv-input" name="rc_prescripcion" rows="8" style="width:100%; resize:vertical; font-family: monospace; color: #111;">${values.rc_prescripcion || ''}</textarea>
+                    </div>
+                    
+                    <div style="margin-top: 3rem; text-align: center;">
+                        ${getSignatureHtml('rc_firma', values.rc_firma || currentUserFirmaUrl, locked)}
+                        <div style="margin-top: 0.5rem; font-size: 0.9rem; font-weight: bold; color: #111;">Firma del Médico</div>
+                    </div>
+                </div>
+            `;
+        } else if (type === 'indicaciones_medicas') {
+            html = `
+                <div style="background-color: #fff; padding: 1rem; border: 1px solid #000; font-family: Arial, sans-serif; color: #000;">
+                    <h2 style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 0.5rem; text-transform: uppercase; margin-top: 0;">HOJA DE INDICACIONES MÉDICAS</h2>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 2fr; gap: 0; border-bottom: 1px solid #000;">
+                        <div style="border-right: 1px solid #000; padding: 0.5rem;">
+                            <label style="font-weight: bold; font-size: 0.8rem;">Fecha:</label>
+                            <input type="date" class="cnv-input" name="im_fecha" style="width:100%; border-bottom: 1px dashed #000;" value="${values.im_fecha || ''}">
+                        </div>
+                        <div style="border-right: 1px solid #000; padding: 0.5rem;">
+                            <label style="font-weight: bold; font-size: 0.8rem;">Hora:</label>
+                            <input type="time" class="cnv-input" name="im_hora" style="width:100%; border-bottom: 1px dashed #000;" value="${values.im_hora || ''}">
+                        </div>
+                        <div style="border-right: 1px solid #000; padding: 0.5rem;">
+                            <label style="font-weight: bold; font-size: 0.8rem;">Cama:</label>
+                            <input type="text" class="cnv-input" name="im_cama" style="width:100%; border-bottom: 1px dashed #000;" value="${values.im_cama || ''}">
+                        </div>
+                        <div style="padding: 0.5rem;">
+                            <label style="font-weight: bold; font-size: 0.8rem;">Alergias:</label>
+                            <input type="text" class="cnv-input" name="im_alergias" style="width:100%; border-bottom: 1px dashed #000; color: #dc2626;" value="${values.im_alergias || ''}">
+                        </div>
+                    </div>
+
+                    <div style="padding: 0.5rem; border-bottom: 1px solid #000;">
+                        <label style="font-weight: bold; font-size: 0.9rem; text-decoration: underline;">DIETA:</label>
+                        <textarea class="cnv-input autosize" name="im_dieta" style="width:100%; border:none; background: repeating-linear-gradient(#fff, #fff 24px, #ccc 25px); line-height: 25px;" rows="3">${values.im_dieta || ''}</textarea>
+                    </div>
+
+                    <div style="padding: 0.5rem; border-bottom: 1px solid #000;">
+                        <label style="font-weight: bold; font-size: 0.9rem; text-decoration: underline;">SOLUCIONES PARENTERALES:</label>
+                        <textarea class="cnv-input autosize" name="im_soluciones" style="width:100%; border:none; background: repeating-linear-gradient(#fff, #fff 24px, #ccc 25px); line-height: 25px;" rows="2">${values.im_soluciones || ''}</textarea>
+                    </div>
+
+                    <div style="padding: 0.5rem; border-bottom: 1px solid #000;">
+                        <label style="font-weight: bold; font-size: 0.9rem; text-decoration: underline; display: block; margin-bottom: 0.5rem;">MEDICAMENTOS:</label>
+                        <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.85rem;">
+                            <thead>
+                                <tr>
+                                    <th style="border: 1px solid #000; padding: 0.3rem; width: 40%;">Medicamento / Presentación</th>
+                                    <th style="border: 1px solid #000; padding: 0.3rem;">Dosis</th>
+                                    <th style="border: 1px solid #000; padding: 0.3rem;">Vía de Adm.</th>
+                                    <th style="border: 1px solid #000; padding: 0.3rem;">Frecuencia</th>
+                                    <th style="border: 1px solid #000; padding: 0.3rem;">Horario</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_med1" style="width:100%; border:none; text-align:center;" rows="1">${values.im_med1 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_dos1" style="width:100%; border:none; text-align:center;" rows="1">${values.im_dos1 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_via1" style="width:100%; border:none; text-align:center;" rows="1">${values.im_via1 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_fre1" style="width:100%; border:none; text-align:center;" rows="1">${values.im_fre1 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_hor1" style="width:100%; border:none; text-align:center;" rows="1">${values.im_hor1 || ''}</textarea></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_med2" style="width:100%; border:none; text-align:center;" rows="1">${values.im_med2 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_dos2" style="width:100%; border:none; text-align:center;" rows="1">${values.im_dos2 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_via2" style="width:100%; border:none; text-align:center;" rows="1">${values.im_via2 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_fre2" style="width:100%; border:none; text-align:center;" rows="1">${values.im_fre2 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_hor2" style="width:100%; border:none; text-align:center;" rows="1">${values.im_hor2 || ''}</textarea></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_med3" style="width:100%; border:none; text-align:center;" rows="1">${values.im_med3 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_dos3" style="width:100%; border:none; text-align:center;" rows="1">${values.im_dos3 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_via3" style="width:100%; border:none; text-align:center;" rows="1">${values.im_via3 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_fre3" style="width:100%; border:none; text-align:center;" rows="1">${values.im_fre3 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_hor3" style="width:100%; border:none; text-align:center;" rows="1">${values.im_hor3 || ''}</textarea></td>
+                                </tr>
+                                <tr>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_med4" style="width:100%; border:none; text-align:center;" rows="1">${values.im_med4 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_dos4" style="width:100%; border:none; text-align:center;" rows="1">${values.im_dos4 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_via4" style="width:100%; border:none; text-align:center;" rows="1">${values.im_via4 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_fre4" style="width:100%; border:none; text-align:center;" rows="1">${values.im_fre4 || ''}</textarea></td>
+                                    <td style="border: 1px solid #000; padding: 0.2rem;"><textarea class="cnv-input autosize" name="im_hor4" style="width:100%; border:none; text-align:center;" rows="1">${values.im_hor4 || ''}</textarea></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="padding: 0.5rem;">
+                        <label style="font-weight: bold; font-size: 0.9rem; text-decoration: underline;">CUIDADOS GENERALES DE ENFERMERÍA:</label>
+                        <textarea class="cnv-input autosize" name="im_cuidados" style="width:100%; border:none; background: repeating-linear-gradient(#fff, #fff 24px, #ccc 25px); line-height: 25px;" rows="4">${values.im_cuidados || ''}</textarea>
+                    </div>
+
+                    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                        <div style="text-align: center; width: 300px;">
+                            ${getSignatureHtml('im_firma_medico', values.im_firma_medico || currentUserFirmaUrl, locked)}
+                            <div style="font-weight: bold; border-top: 1px solid #000; padding-top: 0.3rem;">Nombre y Firma del Médico</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (type === 'referencia_medica') {
+            html = `
+                <div style="background-color: #fff; padding: 1rem; border: 1px solid #000; font-family: Arial, sans-serif; color: #000;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                        <div style="font-weight: bold; font-size: 1.2rem;">REFERENCIA / CONTRARREFERENCIA</div>
+                        <div style="border: 1px solid #000; padding: 0.2rem 1rem; font-weight: bold;">INPDSCEC-06</div>
+                    </div>
+
+                    <div style="border: 1px solid #000; margin-bottom: 1rem;">
+                        <div style="background: #e2e8f0; font-weight: bold; padding: 0.2rem 0.5rem; border-bottom: 1px solid #000; text-align: center;">SECCIÓN I y II: INSTITUCIONES</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr;">
+                            <div style="padding: 0.5rem; border-right: 1px solid #000; border-bottom: 1px solid #000;">
+                                <label style="font-weight: bold; font-size: 0.8rem;">Unidad que Refiere:</label>
+                                <input type="text" class="cnv-input" name="rm_unidad_origen" style="width:100%; border:none; border-bottom: 1px solid #000;" value="${values.rm_unidad_origen || ''}">
+                            </div>
+                            <div style="padding: 0.5rem; border-bottom: 1px solid #000;">
+                                <label style="font-weight: bold; font-size: 0.8rem;">Especialidad / Servicio:</label>
+                                <input type="text" class="cnv-input" name="rm_especialidad_origen" style="width:100%; border:none; border-bottom: 1px solid #000;" value="${values.rm_especialidad_origen || ''}">
+                            </div>
+                            <div style="padding: 0.5rem; border-right: 1px solid #000;">
+                                <label style="font-weight: bold; font-size: 0.8rem;">Unidad Destino:</label>
+                                <input type="text" class="cnv-input" name="rm_unidad_destino" style="width:100%; border:none; border-bottom: 1px solid #000;" value="${values.rm_unidad_destino || ''}">
+                            </div>
+                            <div style="padding: 0.5rem;">
+                                <label style="font-weight: bold; font-size: 0.8rem;">Especialidad / Servicio Destino:</label>
+                                <input type="text" class="cnv-input" name="rm_especialidad_destino" style="width:100%; border:none; border-bottom: 1px solid #000;" value="${values.rm_especialidad_destino || ''}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="border: 1px solid #000; margin-bottom: 1rem;">
+                        <div style="background: #e2e8f0; font-weight: bold; padding: 0.2rem 0.5rem; border-bottom: 1px solid #000; text-align: center;">SECCIÓN III: MOTIVO DE LA REFERENCIA</div>
+                        <div style="padding: 0.5rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; font-size: 0.9rem;">
+                            <label><input type="radio" name="rm_motivo_opcion" value="Interconsulta" ${values.rm_motivo_opcion === 'Interconsulta' ? 'checked' : ''}> Interconsulta</label>
+                            <label><input type="radio" name="rm_motivo_opcion" value="Hospitalización" ${values.rm_motivo_opcion === 'Hospitalización' ? 'checked' : ''}> Hospitalización</label>
+                            <label><input type="radio" name="rm_motivo_opcion" value="No acepta internamiento" ${values.rm_motivo_opcion === 'No acepta internamiento' ? 'checked' : ''}> No acepta internamiento</label>
+                            <label><input type="radio" name="rm_motivo_opcion" value="No hay disponibilidad de camas" ${values.rm_motivo_opcion === 'No hay disponibilidad de camas' ? 'checked' : ''}> No hay disponibilidad de camas</label>
+                            <label style="display: flex; align-items: center; gap: 0.3rem;">
+                                <input type="radio" name="rm_motivo_opcion" value="Otro" ${values.rm_motivo_opcion === 'Otro' ? 'checked' : ''}> Otro:
+                                <input type="text" class="cnv-input" name="rm_motivo_otro" style="border:none; border-bottom:1px solid #000;" value="${values.rm_motivo_otro || ''}">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style="border: 1px solid #000; margin-bottom: 1rem;">
+                        <div style="background: #e2e8f0; font-weight: bold; padding: 0.2rem 0.5rem; border-bottom: 1px solid #000; text-align: center;">SECCIÓN IV: RESUMEN CLÍNICO</div>
+                        
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #000; padding: 0.5rem; font-size: 0.9rem;">
+                            <div>
+                                <span style="font-weight: bold;">¿El paciente ha recibido manejo previamente?</span>
+                                <label style="margin-left: 1rem;"><input type="radio" name="rm_manejo_previo" value="Sí" ${values.rm_manejo_previo === 'Sí' ? 'checked' : ''}> Sí</label>
+                                <label style="margin-left: 0.5rem;"><input type="radio" name="rm_manejo_previo" value="No" ${values.rm_manejo_previo === 'No' ? 'checked' : ''}> No</label>
+                            </div>
+                            <div>
+                                <span style="font-weight: bold;">¿Se anexan estudios de laboratorio y gabinete?</span>
+                                <label style="margin-left: 1rem;"><input type="radio" name="rm_estudios_anexos" value="Sí" ${values.rm_estudios_anexos === 'Sí' ? 'checked' : ''}> Sí</label>
+                                <label style="margin-left: 0.5rem;"><input type="radio" name="rm_estudios_anexos" value="No" ${values.rm_estudios_anexos === 'No' ? 'checked' : ''}> No</label>
+                            </div>
+                        </div>
+
+                        <div style="padding: 0.5rem; border-bottom: 1px solid #000;">
+                            <label style="font-weight: bold; font-size: 0.9rem; display: block;">Padecimiento Actual / Evolución:</label>
+                            <textarea class="cnv-input autosize" name="rm_padecimiento" style="width:100%; border:none; border-bottom: 1px solid #ccc; min-height: 80px;" rows="4">${values.rm_padecimiento || ''}</textarea>
+                        </div>
+                        <div style="padding: 0.5rem; border-bottom: 1px solid #000;">
+                            <label style="font-weight: bold; font-size: 0.9rem; display: block;">Diagnóstico Probable:</label>
+                            <textarea class="cnv-input autosize" name="rm_diagnostico_prob" style="width:100%; border:none; border-bottom: 1px solid #ccc; min-height: 50px;" rows="2">${values.rm_diagnostico_prob || ''}</textarea>
+                        </div>
+                        <div style="padding: 0.5rem;">
+                            <label style="font-weight: bold; font-size: 0.9rem; display: block;">Tratamiento Inicial Sugerido:</label>
+                            <textarea class="cnv-input autosize" name="rm_tratamiento_inic" style="width:100%; border:none; border-bottom: 1px solid #ccc; min-height: 60px;" rows="3">${values.rm_tratamiento_inic || ''}</textarea>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+                        <div style="text-align: center; width: 300px;">
+                            ${getSignatureHtml('rm_firma_medico', values.rm_firma_medico || currentUserFirmaUrl, locked)}
+                            <div style="font-weight: bold; border-top: 1px solid #000; padding-top: 0.3rem;">Nombre y Firma del Médico que Refiere</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (type === 'exploracion_fisica') {
+            html = `
+                <div style="background-color: #fff; padding: 1rem; border: 1px solid #000; font-family: Arial, sans-serif; color: #000;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                        <div style="font-weight: bold; font-size: 1.2rem;">EXPLORACIÓN FÍSICA Y HABITUS EXTERIOR</div>
+                        <div style="border: 1px solid #000; padding: 0.2rem 1rem; font-weight: bold;">PDF-9</div>
+                    </div>
+
+                    <div style="border: 1px solid #000; margin-bottom: 1rem;">
+                        <div style="background: #e2e8f0; font-weight: bold; padding: 0.2rem 0.5rem; border-bottom: 1px solid #000; text-align: center;">SOMATOMETRÍA Y SIGNOS VITALES</div>
+                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.8rem;">
+                            <div style="border-right: 1px solid #000; padding: 0.3rem;">
+                                <div style="font-weight: bold;">Peso (kg)</div>
+                                <input type="number" step="0.1" class="cnv-input" name="ef_peso" style="width:100%; border:none; text-align:center; border-bottom: 1px dashed #ccc;" value="${values.ef_peso || ''}">
+                            </div>
+                            <div style="border-right: 1px solid #000; padding: 0.3rem;">
+                                <div style="font-weight: bold;">Talla (m)</div>
+                                <input type="number" step="0.01" class="cnv-input" name="ef_talla" style="width:100%; border:none; text-align:center; border-bottom: 1px dashed #ccc;" value="${values.ef_talla || ''}">
+                            </div>
+                            <div style="border-right: 1px solid #000; padding: 0.3rem;">
+                                <div style="font-weight: bold;">FC (x min)</div>
+                                <input type="number" class="cnv-input" name="ef_fc" style="width:100%; border:none; text-align:center; border-bottom: 1px dashed #ccc;" value="${values.ef_fc || ''}">
+                            </div>
+                            <div style="border-right: 1px solid #000; padding: 0.3rem;">
+                                <div style="font-weight: bold;">FR (x min)</div>
+                                <input type="number" class="cnv-input" name="ef_fr" style="width:100%; border:none; text-align:center; border-bottom: 1px dashed #ccc;" value="${values.ef_fr || ''}">
+                            </div>
+                            <div style="border-right: 1px solid #000; padding: 0.3rem;">
+                                <div style="font-weight: bold;">T.A. (mmHg)</div>
+                                <input type="text" class="cnv-input" name="ef_ta" style="width:100%; border:none; text-align:center; border-bottom: 1px dashed #ccc;" value="${values.ef_ta || ''}">
+                            </div>
+                            <div style="border-right: 1px solid #000; padding: 0.3rem;">
+                                <div style="font-weight: bold;">Temp (°C)</div>
+                                <input type="number" step="0.1" class="cnv-input" name="ef_temp" style="width:100%; border:none; text-align:center; border-bottom: 1px dashed #ccc;" value="${values.ef_temp || ''}">
+                            </div>
+                            <div style="padding: 0.3rem; background: #f8fafc;">
+                                <div style="font-weight: bold;">IMC</div>
+                                <input type="text" class="cnv-input ef_imc_field" name="ef_imc" style="width:100%; border:none; text-align:center; cursor: not-allowed; font-weight: bold;" value="${values.ef_imc || ''}" readonly tabindex="-1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="border: 1px solid #000;">
+                        <div style="background: #e2e8f0; font-weight: bold; padding: 0.2rem 0.5rem; border-bottom: 1px solid #000; text-align: center;">DESGLOSE POR SISTEMAS</div>
+                        
+                        <div style="padding: 0.5rem; border-bottom: 1px solid #000;">
+                            <label style="font-weight: bold; font-size: 0.9rem;">HABITUS EXTERIOR</label>
+                            <textarea class="cnv-input autosize" name="ef_habitus" style="width:100%; border:none; border-bottom: 1px solid #ccc; min-height: 40px;" rows="2">${values.ef_habitus || ''}</textarea>
+                        </div>
+                        <div style="padding: 0.5rem; border-bottom: 1px solid #000;">
+                            <label style="font-weight: bold; font-size: 0.9rem;">CABEZA (Cráneo y Cara)</label>
+                            <textarea class="cnv-input autosize" name="ef_cabeza" style="width:100%; border:none; border-bottom: 1px solid #ccc; min-height: 40px;" rows="2">${values.ef_cabeza || ''}</textarea>
+                        </div>
+                        <div style="padding: 0.5rem; border-bottom: 1px solid #000;">
+                            <label style="font-weight: bold; font-size: 0.9rem;">CUELLO</label>
+                            <textarea class="cnv-input autosize" name="ef_cuello" style="width:100%; border:none; border-bottom: 1px solid #ccc; min-height: 40px;" rows="2">${values.ef_cuello || ''}</textarea>
+                        </div>
+                        <div style="padding: 0.5rem; border-bottom: 1px solid #000;">
+                            <label style="font-weight: bold; font-size: 0.9rem;">TÓRAX (Cara posterior, Región precordial, Glándulas mamarias)</label>
+                            <textarea class="cnv-input autosize" name="ef_torax" style="width:100%; border:none; border-bottom: 1px solid #ccc; min-height: 60px;" rows="3">${values.ef_torax || ''}</textarea>
+                        </div>
+                        <div style="padding: 0.5rem; border-bottom: 1px solid #000;">
+                            <label style="font-weight: bold; font-size: 0.9rem;">ABDOMEN</label>
+                            <textarea class="cnv-input autosize" name="ef_abdomen" style="width:100%; border:none; border-bottom: 1px solid #ccc; min-height: 40px;" rows="2">${values.ef_abdomen || ''}</textarea>
+                        </div>
+                        <div style="padding: 0.5rem; border-bottom: 1px solid #000;">
+                            <label style="font-weight: bold; font-size: 0.9rem;">REGIÓN INGUINO-CRURAL</label>
+                            <textarea class="cnv-input autosize" name="ef_inguino" style="width:100%; border:none; border-bottom: 1px solid #ccc; min-height: 40px;" rows="2">${values.ef_inguino || ''}</textarea>
+                        </div>
+                        <div style="padding: 0.5rem; border-bottom: 1px solid #000;">
+                            <label style="font-weight: bold; font-size: 0.9rem;">GENITALES EXTERNOS / TACTO VAGINAL / TACTO RECTAL</label>
+                            <textarea class="cnv-input autosize" name="ef_genitales" style="width:100%; border:none; border-bottom: 1px solid #ccc; min-height: 40px;" rows="2">${values.ef_genitales || ''}</textarea>
+                        </div>
+                        <div style="padding: 0.5rem;">
+                            <label style="font-weight: bold; font-size: 0.9rem;">EXTREMIDADES</label>
+                            <textarea class="cnv-input autosize" name="ef_extremidades" style="width:100%; border:none; border-bottom: 1px solid #ccc; min-height: 40px;" rows="2">${values.ef_extremidades || ''}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (type.startsWith('custom_')) {
+            const t = customTemplatesMap[type];
+            if (t) {
+                let fieldsHtml = '';
+                t.fields_schema.forEach((f, idx) => {
+                    const fname = `custom_${t.id}_f${idx}`;
+                    let val = values[fname];
+                    if (val === undefined) val = '';
+
+                    if (f.type === 'textarea') {
+                        fieldsHtml += `<div style="margin-top:1rem;"><b>${f.label}:</b> <textarea class="cnv-input autosize" name="${fname}" style="width:100%;" rows="3">${val}</textarea></div>`;
+                    } else if (f.type === 'number') {
+                        fieldsHtml += `<div style="margin-top:0.5rem;"><b>${f.label}:</b> <input type="number" class="cnv-input" name="${fname}" style="width:100%" value="${val}"></div>`;
+                    } else if (f.type === 'checkbox') {
+                        const checkedAttr = val === 'true' ? 'checked' : '';
+                        fieldsHtml += `<div style="margin-top:1rem; display:flex; align-items:center; gap:0.5rem;">
+                            <input type="checkbox" name="${fname}" value="true" ${checkedAttr} style="transform: scale(1.2); cursor: pointer;">
+                            <b style="cursor: pointer;" onclick="this.previousElementSibling.click()">${f.label}</b>
+                        </div>`;
+                    } else if (f.type === 'image_field') {
+                        fieldsHtml += `
+                            <div style="margin-top:1.5rem; background:#f8fafc; border-radius:12px; padding:1rem; border:1px solid #e2e8f0;">
+                                <div style="text-align:center; margin-bottom:1rem;">
+                                    <img src="/static/uploads/${f.image_url}" alt="Referencia" style="max-height: 300px; max-width: 100%; object-fit: contain; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                                </div>
+                                <b>${f.label}:</b>
+                                <textarea class="cnv-input autosize" name="${fname}" style="width:100%; background:white; margin-top:0.5rem;" rows="4" placeholder="Escribe tus observaciones aquí...">${val}</textarea>
+                            </div>
+                        `;
+                    } else if (f.type === 'signature_pad') {
+                        fieldsHtml += `<div style="margin-top:1.5rem; background:#f8fafc; border-radius:12px; padding:1rem; border:1px solid #e2e8f0;">
+                                <b>${f.label}:</b>
+                                <div style="margin-top:0.5rem;">
+                                    ${getSignatureHtml(fname, val, locked)}
+                                </div>
+                            </div>`;
+                    } else {
+                        fieldsHtml += `<div style="margin-top:0.5rem;"><b>${f.label}:</b> <input type="text" class="cnv-input" name="${fname}" style="width:100%" value="${val}"></div>`;
+                    }
+                });
+                html = `
+                    <h2 style="text-align: center; border-bottom: 2px solid black; padding-bottom: 0.5rem; text-transform: uppercase;">${t.name}</h2>
+                    <div style="margin-top: 1rem;">
+                        ${fieldsHtml}
+                    </div>
+                `;
+            } else {
+                html = '<p>Plantilla no encontrada.</p>';
+            }
+        }
+        return html;
+    }
+
+    function addBlockToCanvas(type, values = {}, locked = false, timestamp = null) {
+        placeholder.style.display = 'none';
+
+        const block = document.createElement('div');
+        block.className = 'canvas-sheet';
+        if (locked) block.classList.add('locked-block');
+        block.dataset.type = type;
+
+        let blockStyle = "background: white; width: 100%; max-width: 800px; border-radius: 4px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 3rem; position: relative; font-family: 'Times New Roman', serif;";
+        if (locked) {
+            blockStyle += " background: #f8fafc; opacity: 0.95;";
+        }
+        block.style = blockStyle;
+
+        const content = document.createElement('div');
+        content.innerHTML = generateHTML(type, values, locked);
+        block.appendChild(content);
+
+        if (locked) {
+            const inputs = block.querySelectorAll('input, select, textarea');
+            inputs.forEach(inp => {
+                inp.readOnly = true;
+                if (inp.tagName === 'SELECT' || inp.type === 'radio' || inp.type === 'checkbox') inp.disabled = true;
+                inp.style.backgroundColor = 'transparent';
+                inp.style.borderBottom = 'none';
+                inp.style.color = '#334155';
+            });
+            let dateStr = '';
+            if (timestamp) {
+                const dtStr = timestamp.endsWith('Z') ? timestamp : timestamp + 'Z';
+                const dtObj = new Date(dtStr);
+                const monthNames = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+                const day = dtObj.getDate();
+                const month = monthNames[dtObj.getMonth()];
+                const year = dtObj.getFullYear();
+                const hours = dtObj.getHours().toString().padStart(2, '0');
+                const minutes = dtObj.getMinutes().toString().padStart(2, '0');
+                dateStr = `${day} de ${month} del ${year} | ${hours}:${minutes}`;
+            }
+
+            const lockIcon = document.createElement('div');
+            lockIcon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> <span style="margin-top: 1px;">${dateStr}</span>`;
+            lockIcon.style = "position: absolute; right: 1.5rem; top: 1.5rem; color: #94a3b8; font-size: 0.8rem; font-weight: 500; font-family: sans-serif; display: flex; align-items: center; gap: 0.3rem;";
+            block.appendChild(lockIcon);
+        } else {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '&times;';
+            deleteBtn.style = "position: absolute; right: 1rem; top: 1rem; background: #fee2e2; color: #991b1b; border: none; width: 24px; height: 24px; border-radius: 12px; cursor: pointer; display: flex; justify-content: center; align-items: center; font-weight: bold;";
+            deleteBtn.onclick = () => {
+                block.remove();
+                if (canvasArea.children.length === 1) placeholder.style.display = 'flex';
+            };
+            block.appendChild(deleteBtn);
+        }
+
+        if (!document.getElementById('cnv-styles')) {
+            const style = document.createElement('style');
+            style.id = 'cnv-styles';
+            style.textContent = `
+                .cnv-input { border:none; border-bottom:1px solid #ccc; background:transparent; font-family:inherit; font-size:inherit; padding:0.2rem; outline:none; box-sizing: border-box; max-width: 100%; }
+                .cnv-input:focus { border-bottom:2px solid var(--accent-med);}
+                textarea.cnv-input { border: 1px solid #ccc; box-sizing: border-box; max-width: 100%; }
+                .signature-pad { touch-action: none; }
+            `;
+            document.head.appendChild(style);
+        }
+        canvasArea.appendChild(block);
+
+        if (!locked) {
+            setTimeout(() => {
+                const pads = block.querySelectorAll('.signature-pad');
+                pads.forEach(canvas => {
+                    function resizeCanvas(c) {
+                        const rect = c.getBoundingClientRect();
+                        c.width = rect.width;
+                        c.height = rect.height;
+                    }
+                    if (window.SignaturePad) {
+                        resizeCanvas(canvas);
+                        canvas._signaturePad = new SignaturePad(canvas, {
+                            penColor: "rgb(0, 0, 0)",
+                            backgroundColor: "rgb(255, 255, 255)"
+                        });
+                    }
+                });
+            }, 50);
+        }
+    }
+
+    // JSON extract
+    function extractCanvasData() {
+        const blocks = document.querySelectorAll('.canvas-sheet');
+        let formData = [];
+        blocks.forEach(block => {
+            const data = { type: block.dataset.type, fields: {} };
+            const inputs = block.querySelectorAll('input, select, textarea');
+            inputs.forEach(inp => {
+                if (inp.type === 'checkbox') {
+                    data.fields[inp.name] = inp.checked ? 'true' : 'false';
+                } else {
+                    data.fields[inp.name] = inp.value;
+                }
+            });
+            const pads = block.querySelectorAll('.signature-pad');
+            pads.forEach(canvas => {
+                const fname = canvas.dataset.name;
+                const tipoInp = block.querySelector(`input[name="${fname}_tipo"]`);
+                if (tipoInp && tipoInp.value === 'precargada') {
+                    // No intentar leer el canvas
+                    return;
+                }
+
+                if (canvas._signaturePad && !canvas._signaturePad.isEmpty()) {
+                    data.fields[fname] = canvas._signaturePad.toDataURL('image/png');
+                } else {
+                    if (!data.fields[fname]) {
+                        data.fields[fname] = '';
+                    }
+                }
+            });
+            formData.push(data);
+        });
+        return formData;
+    }
+
+    // Save Record
+    async function saveRecord() {
+        // Intercept file uploads (e.g. INE)
+        const fileInputs = document.querySelectorAll('.canvas-sheet input[type="file"]');
+        for (let input of fileInputs) {
+            if (input.files && input.files.length > 0) {
+                const fd = new FormData();
+                fd.append('file', input.files[0]);
+                try {
+                    const uploadRes = await fetch('/api/upload_ine', { method: 'POST', body: fd });
+                    const uploadData = await uploadRes.json();
+                    if (uploadData.success) {
+                        const hiddenUrl = input.nextElementSibling;
+                        if (hiddenUrl && hiddenUrl.type === 'hidden') {
+                            hiddenUrl.value = uploadData.filename;
+                        }
+                    } else {
+                        alert("Error subiendo archivo: " + uploadData.error);
+                        return;
+                    }
+                } catch (e) {
+                    alert("Error en la red al subir archivo: " + e);
+                    return;
+                }
+            }
+        }
+
+        const pages = extractCanvasData();
+        if (pages.length === 0) return alert("El lienzo está vacío.");
+
+        // Find best name
+        let pName = "Paciente Desconocido";
+        const nInputs = document.querySelectorAll('.patient-name-input');
+        if (nInputs.length > 0) pName = nInputs[0].value || pName;
+
+        const currentId = document.getElementById('currentRecordId').value || null;
+        let t = "Consulta Nueva";
+
+        if (!currentId) {
+            t = prompt("Ingresa un Título breve (ej. Consulta Mensual)", "Consulta Nueva");
+            if (t === null) return;
+        } else {
+            t = window.currentRecordTitle || t;
+        }
+
+        const data = {
+            id: currentId,
+            patient_name: pName,
+            title: t,
+            pages: pages
+        };
+
+        try {
+            const res = await fetch('/api/records', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const r = await res.json();
+            if (r.success) {
+                document.getElementById('currentRecordId').value = r.id;
+                document.getElementById('currentStatusLabel').textContent = "Guardado sincronizado (ID: " + r.id + ")";
+                alert("Guardado correctamente.");
+            }
+        } catch (e) { alert(e); }
+    }
+
+    // Open Directory
+    async function openDirectory() {
+        document.getElementById('directoryModal').style.display = 'block';
+        fetchDirectory();
+    }
+
+    document.getElementById('patientSearchStr').addEventListener('input', () => { fetchDirectory(); });
+
+    async function fetchDirectory() {
+        const s = document.getElementById('patientSearchStr').value;
+        const res = await fetch('/api/records?search=' + encodeURIComponent(s));
+        const data = await res.json();
+
+        const list = document.getElementById('recordsList');
+        list.innerHTML = '';
+        data.forEach(r => {
+            list.innerHTML += `
+                <div style="border-bottom: 1px solid #eee; padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <b style="color:var(--text-main); font-size: 1.1rem;">${r.patient_name}</b>
+                        <p style="margin: 0.2rem 0; font-size: 0.9rem; color: var(--text-muted);">${r.title}</p>
+                        <small style="color:var(--text-muted);">Modif: ${r.updated_at} | Ext: ${r.attachments_count}</small>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; margin-right: 0.5rem; color: #ef4444; border-color: #ef4444;" onclick="openDeleteRecordModal(${r.id}, '${r.patient_name}')" title="Eliminar Expediente"><i class="fa-solid fa-trash"></i></button>
+                        <button class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; margin-right: 0.5rem;" onclick="openAttachments(${r.id}, '${r.patient_name}')">📎 Anexos</button>
+                        <button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="loadRecordUI(${r.id})">Cargar Lienzo</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function openDeleteRecordModal(id, name) {
+        document.getElementById('deleteRecordId').value = id;
+        document.getElementById('deleteRecordName').textContent = name;
+        document.getElementById('deleteRecordPassword').value = '';
+        document.getElementById('deleteRecordError').style.display = 'none';
+        document.getElementById('deleteRecordModal').style.display = 'flex';
+    }
+
+    function closeDeleteRecordModal() {
+        document.getElementById('deleteRecordModal').style.display = 'none';
+    }
+
+    async function submitDeleteRecord() {
+        const id = document.getElementById('deleteRecordId').value;
+        const password = document.getElementById('deleteRecordPassword').value;
+        const errElem = document.getElementById('deleteRecordError');
+
+        if (!password) {
+            errElem.textContent = "Por favor ingresa tu contraseña.";
+            errElem.style.display = 'block';
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/records/delete_expedient/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                closeDeleteRecordModal();
+                alert("Expediente y anexos eliminados con éxito");
+                fetchDirectory();
+                if (document.getElementById('currentRecordId').value == id) {
+                    closeRecordView();
+                }
+            } else {
+                errElem.textContent = data.message || data.error || "Error al eliminar expediente.";
+                errElem.style.display = 'block';
+            }
+        } catch (e) {
+            errElem.textContent = "Error de conexión al servidor.";
+            errElem.style.display = 'block';
+        }
+    }
+
+    function closeRecordView() {
+        document.getElementById('recordCanvas').style.display = 'none';
+        document.getElementById('emptyStateContainer').style.display = 'flex';
+        
+        if (document.getElementById('recordForm')) {
+            document.getElementById('recordForm').reset();
+        }
+        
+        // Reset state values & inputs
+        document.getElementById('currentRecordId').value = '';
+        window.currentRecordTitle = '';
+        document.getElementById('currentStatusLabel').textContent = "Nuevo archivo";
+        
+        if (typeof currentRecordId !== 'undefined') currentRecordId = null;
+        if (typeof currentPatientId !== 'undefined') currentPatientId = null;
+        
+        // Remove active class from any active items (excluding navigation links)
+        document.querySelectorAll('.active').forEach(el => {
+            if (!el.classList.contains('nav-link')) {
+                el.classList.remove('active');
+            }
+        });
+    }
+
+    function startNewRecord() {
+        document.getElementById('recordCanvas').style.display = 'flex';
+        document.getElementById('emptyStateContainer').style.display = 'none';
+        
+        // Reset state
+        document.getElementById('currentRecordId').value = '';
+        window.currentRecordTitle = '';
+        document.querySelectorAll('.canvas-sheet').forEach(b => b.remove());
+        placeholder.style.display = 'flex';
+        document.getElementById('currentStatusLabel').textContent = "Nuevo archivo";
+        
+        if (document.getElementById('recordForm')) {
+            document.getElementById('recordForm').reset();
+        }
+        
+        // Clear active selection visual cues
+        document.querySelectorAll('.active').forEach(el => {
+            if (!el.classList.contains('nav-link')) {
+                el.classList.remove('active');
+            }
+        });
+    }
+
+    async function loadRecordUI(id) {
+        document.getElementById('recordCanvas').style.display = 'flex';
+        document.getElementById('emptyStateContainer').style.display = 'none';
+
+        const res = await fetch('/api/records/' + id);
+        const data = await res.json();
+
+        document.querySelectorAll('.canvas-sheet').forEach(b => b.remove());
+        placeholder.style.display = 'none';
+
+        data.pages.forEach(p => {
+            addBlockToCanvas(p.type, p.fields, true, p.timestamp);
+        });
+
+        document.getElementById('currentRecordId').value = data.id;
+        window.currentRecordTitle = data.title;
+        document.getElementById('currentStatusLabel').textContent = "Viendo Exp #" + data.id + ": " + data.title;
+        document.getElementById('directoryModal').style.display = 'none';
+    }
+
+    // Attachments
+    async function openAttachments(id, name) {
+        currentOpenedAttachments = id;
+        document.getElementById('attPatientName').textContent = name;
+        document.getElementById('attachmentsModal').style.display = 'block';
+
+        const res = await fetch('/api/records/' + id);
+        const data = await res.json();
+        renderAttachments(data.attachments);
+    }
+
+    function renderAttachments(atts) {
+        const div = document.getElementById('attList');
+        div.innerHTML = '';
+        if (atts.length === 0) div.innerHTML = "<i>Sin archivos anexos.</i>";
+        atts.forEach(a => {
+            div.innerHTML += `
+            <div style="padding:0.5rem; background:#f8fafc; margin-bottom:0.3rem; border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
+                <a href="/static/uploads/${a.filename}" target="_blank" style="color:var(--accent-med); text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:85%;">📄 ${a.original_name}</a>
+                <button onclick="deleteAttachment(${a.id}, event)" style="background:none; border:none; color:var(--accent-danger); cursor:pointer;" title="Eliminar permanentemente">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+            </div>`;
+        });
+    }
+
+    async function deleteAttachment(id, ev) {
+        if (ev) ev.stopPropagation();
+        if (!confirm("¿Estás completamente seguro de que deseas eliminar este estudio o archivo?")) return;
+
+        try {
+            const res = await fetch('/api/attachments/' + id, { method: 'DELETE' });
+            const r = await res.json();
+            if (r.success) {
+                openAttachments(currentOpenedAttachments, document.getElementById('attPatientName').textContent);
+            } else {
+                alert("Error eliminando: " + r.error);
+            }
+        } catch (e) {
+            alert(e);
+        }
+    }
+
+    async function uploadAttachment() {
+        if (!currentOpenedAttachments) return;
+        const file = document.getElementById('uploadFile').files[0];
+        if (!file) return alert("Selecciona un archivo.");
+
+        const fd = new FormData();
+        fd.append('file', file);
+
+        const res = await fetch('/api/upload/' + currentOpenedAttachments, {
+            method: 'POST',
+            body: fd
+        });
+        const r = await res.json();
+        if (r.success) {
+            alert("Subido correcto.");
+            openAttachments(currentOpenedAttachments, document.getElementById('attPatientName').textContent); // reload window
+        } else { alert("Error " + r.error); }
+    }
+
+    // ReportLab Export PDF
+    async function exportMasterPDF() {
+        // Intercept file uploads (e.g. INE)
+        const fileInputs = document.querySelectorAll('.canvas-sheet input[type="file"]');
+        for (let input of fileInputs) {
+            if (input.files && input.files.length > 0) {
+                const fd = new FormData();
+                fd.append('file', input.files[0]);
+                try {
+                    const uploadRes = await fetch('/api/upload_ine', { method: 'POST', body: fd });
+                    const uploadData = await uploadRes.json();
+                    if (uploadData.success) {
+                        const hiddenUrl = input.nextElementSibling;
+                        if (hiddenUrl && hiddenUrl.type === 'hidden') {
+                            hiddenUrl.value = uploadData.filename;
+                        }
+                    } else {
+                        alert("Error subiendo archivo: " + uploadData.error);
+                        return;
+                    }
+                } catch (e) {
+                    alert("Error en la red al subir archivo: " + e);
+                    return;
+                }
+            }
+        }
+
+        const pages = extractCanvasData();
+        if (pages.length === 0) return alert("El lienzo está vacío.");
+
+        const btn = document.querySelector('button[onclick="exportMasterPDF()"]');
+        const oldText = btn.textContent;
+        btn.textContent = "Generando...";
+        btn.disabled = true;
+
+        try {
+            const reqData = {
+                pages: pages,
+                record_id: document.getElementById('currentRecordId').value || null
+            };
+            const res = await fetch('/api/generate_record_pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reqData)
+            });
+            if (!res.ok) throw new Error("Error en servidor");
+            // Determine filename dynamically based on patient name and record ID
+            let pName = "Paciente_Desconocido";
+            const nInputs = document.querySelectorAll('.patient-name-input');
+            for (let inp of nInputs) {
+                if (inp.value && inp.value.trim() !== '') {
+                    pName = inp.value.trim().replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '').replace(/\s+/g, '_');
+                    break;
+                }
+            }
+            const recordId = document.getElementById('currentRecordId').value || null;
+            let filename = `Expediente_${pName}`;
+            if (recordId) {
+                filename += `_ID_${recordId}`;
+            }
+            filename += ".pdf";
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } catch (e) {
+            alert('Error generando PDF: ' + e);
+        } finally {
+            btn.textContent = oldText;
+            btn.disabled = false;
+        }
+    }
+
+    document.getElementById('templateSearch').addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        document.querySelectorAll('.template-item').forEach(item => {
+            item.style.display = item.textContent.toLowerCase().includes(val) ? 'block' : 'none';
+        });
+    });
+
+    // Auto-resize for textareas and IMC reactive calculation
+    document.addEventListener('input', function (e) {
+        if (e.target.tagName.toLowerCase() === 'textarea' && e.target.classList.contains('autosize')) {
+            e.target.style.height = 'auto';
+            e.target.style.height = (e.target.scrollHeight) + 'px';
+        }
+
+        // IMC Calculation for dynamic Receta and Exploración Física inputs
+        if (['rc_peso', 'rc_talla', 'ef_peso', 'ef_talla'].includes(e.target.name)) {
+            const block = e.target.closest('.canvas-sheet');
+            if (block) {
+                const isReceta = e.target.name.startsWith('rc_');
+                const pesoInput = block.querySelector(`input[name="\${isReceta ? 'rc_peso' : 'ef_peso'}"]`);
+                const tallaInput = block.querySelector(`input[name="\${isReceta ? 'rc_talla' : 'ef_talla'}"]`);
+                const imcInput = block.querySelector(`input[name="\${isReceta ? 'rc_imc' : 'ef_imc'}"]`);
+                if (pesoInput && tallaInput && imcInput) {
+                    const peso = parseFloat(pesoInput.value);
+                    const talla = parseFloat(tallaInput.value);
+                    if (peso > 0 && talla > 0) {
+                        imcInput.value = (peso / (talla * talla)).toFixed(2);
+                    } else {
+                        imcInput.value = '';
+                    }
+                }
+            }
+        }
+    });
+
+    function showShareModal() {
+        const recId = document.getElementById('currentRecordId').value;
+        if (!recId) {
+            alert("Primero debes guardar el expediente antes de compartirlo.");
+            return;
+        }
+        document.getElementById('shareUsername').value = '';
+        document.getElementById('shareCedula').value = '';
+        document.getElementById('shareModal').style.display = 'flex';
+    }
+
+    function hideShareModal() {
+        document.getElementById('shareModal').style.display = 'none';
+    }
+
+    async function submitShare() {
+        const recId = document.getElementById('currentRecordId').value;
+        if (!recId) return;
+
+        const targetUsername = document.getElementById('shareUsername').value.trim();
+        const targetCedula = document.getElementById('shareCedula').value.trim();
+
+        if (!targetUsername || !targetCedula) {
+            alert('Por favor, ingresa tanto el Nombre de Usuario como la Cédula Profesional del médico receptor.');
+            return;
+        }
+
+        const btn = document.getElementById('shareSubmitBtn');
+        const originalText = btn.textContent;
+        btn.textContent = "Transfiriendo...";
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/records/' + recId + '/share', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    target_username: targetUsername,
+                    target_cedula: targetCedula
+                })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                hideShareModal();
+                alert(data.message);
+            } else {
+                alert('Atención: ' + data.error);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error contactando al servidor.');
+        } finally {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }
+    }
+</script>
+{% endblock %}

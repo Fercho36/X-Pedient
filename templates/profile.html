@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}Mi Perfil - X-Pedient{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 3rem auto;">
+    <h2>Mi Perfil Médico</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">Actualiza tus credenciales de acceso para la plataforma X-Pedient.</p>
+    
+    <form method="POST" action="{{ url_for('profile_view') }}" enctype="multipart/form-data">
+        <div class="form-group">
+            <label>Nombre del Médico:</label>
+            <input type="text" class="form-control" value="{{ 'Dr.' if current_user.sexo == 'Masculino' else 'Dra.' if current_user.sexo == 'Femenino' else 'Dr(a).' }} {{ current_user.username }}" disabled>
+        </div>
+        
+        <div class="form-group">
+            <label>Sexo:</label>
+            <select name="sexo" class="form-control" style="background: var(--bg-secondary);">
+                <option value="" {% if not current_user.sexo %}selected{% endif %}>No especificado</option>
+                <option value="Masculino" {% if current_user.sexo == 'Masculino' %}selected{% endif %}>Masculino</option>
+                <option value="Femenino" {% if current_user.sexo == 'Femenino' %}selected{% endif %}>Femenino</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Cédula Profesional:</label>
+            <input type="text" class="form-control" value="{{ current_user.cedula_profesional or 'No registrada' }}" disabled>
+            {% if not current_user.is_verified %}
+            <small style="color: var(--accent-danger); display: block; margin-top: 0.3rem;">Estado: No validada. (La funcionalidad de recetas está deshabilitada)</small>
+            {% else %}
+            <small style="color: var(--accent-green); display: block; margin-top: 0.3rem;">Estado: Verificada.</small>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label>Especialidad Principal:</label>
+            <input type="text" class="form-control" name="especialidad_principal" value="{{ current_user.especialidad_principal or '' }}" placeholder="Ej. Pediatría, Cirugía General">
+        </div>
+        
+        <div class="form-group">
+            <label>Número Telefónico:</label>
+            <input type="text" class="form-control" name="telefono" value="{{ current_user.telefono or '' }}" placeholder="Ej. +52 55 1234 5678">
+        </div>
+        
+        <div class="form-group">
+            <label>Dirección del Consultorio o Clínica:</label>
+            <input type="text" class="form-control" name="direccion_consultorio" value="{{ current_user.direccion_consultorio or '' }}" placeholder="Ej. Av. Siempre Viva 123, Col. Centro">
+        </div>
+        
+        <hr style="border: 0; border-top: 1px solid var(--border-light); margin: 2rem 0;">
+        
+        <div class="form-group">
+            <label>Actualizar Correo Electrónico:</label>
+            <input type="email" class="form-control" name="email" value="{{ current_user.email }}" required>
+        </div>
+        <div class="form-group">
+            <label>Nueva Contraseña (Opcional):</label>
+            <div style="position: relative;">
+                <input type="password" id="profilePassword" class="form-control" name="password" placeholder="Déjalo en blanco para mantener tu contraseña actual" style="padding-right: 2.5rem;">
+                <button type="button" onclick="togglePasswordVisibility('profilePassword', this)" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer;">
+                    <i class="fa-regular fa-eye"></i>
+                </button>
+            </div>
+            <small style="color: var(--text-muted); display: block; margin-top: 0.3rem;">Introduce una nueva contraseña sólo si deseas cambiarla.</small>
+        </div>
+        
+        <hr style="border: 0; border-top: 1px solid var(--border-light); margin: 2rem 0;">
+        
+        <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-hover); padding: 1.5rem; border-radius: 8px;">
+            <div>
+                <label style="margin-bottom: 0.3rem; font-size: 1.1rem; display: block; font-weight: 600;">Apariencia de la Interfaz</label>
+                <small style="color: var(--text-muted); display: block;">Alterna entre el modo oscuro (por defecto) y el modo claro.</small>
+            </div>
+            <button type="button" id="theme-toggle" class="btn btn-outline" style="display: flex; gap: 0.5rem; align-items: center;">
+                <i class="fa-solid fa-sun" id="theme-icon"></i> <span id="theme-text">Modo Claro</span>
+            </button>
+        </div>
+
+        <div class="form-group" style="background: var(--bg-hover); padding: 1.5rem; border-radius: 8px; margin-top: 1rem;">
+            <label style="margin-bottom: 0.3rem; font-size: 1.1rem; display: block; font-weight: 600;">Cierre de Sesión Automático</label>
+            <small style="color: var(--text-muted); display: block; margin-bottom: 1rem;">Configura el tiempo de inactividad antes de requerir inicio de sesión nuevamente.</small>
+            <select name="session_timeout" class="form-control" style="background: var(--bg-secondary);">
+                <option value="0" {% if current_user.session_timeout == 0 %}selected{% endif %}>Desactivado (Mantener hasta cerrar navegador)</option>
+                <option value="15" {% if current_user.session_timeout == 15 %}selected{% endif %}>15 Minutos</option>
+                <option value="30" {% if current_user.session_timeout == 30 %}selected{% endif %}>30 Minutos</option>
+                <option value="60" {% if current_user.session_timeout == 60 %}selected{% endif %}>1 Hora</option>
+            </select>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border-light); margin: 2rem 0;">
+        
+        <div class="form-group">
+            <label>Firma Digital (Imagen JPG/PNG):</label>
+            {% if current_user.firma_path %}
+                <div id="signature-container" style="margin-bottom: 1rem; padding: 1rem; border: 1px dashed var(--border-light); text-align: center; background: white;">
+                    <img src="{{ url_for('static', filename='uploads/' + current_user.firma_path) }}?t={{ range(1, 99999) | random }}" alt="Firma Actual" style="max-height: 80px; max-width: 100%;">
+                    <br>
+                    <button type="button" class="btn btn-outline" style="color: var(--accent-danger); border-color: var(--accent-danger); padding: 0.3rem 0.8rem; font-size: 0.85rem; margin-top: 10px;" onclick="deleteSignature()">
+                        <i class="fas fa-trash"></i> Eliminar Firma
+                    </button>
+                    <small style="display:block; color:var(--accent-green); margin-top:0.5rem;">Firma Registrada</small>
+                </div>
+            {% endif %}
+            <input type="file" class="form-control" name="firma" accept=".png, .jpg, .jpeg">
+            <small style="color: var(--text-muted); display: block; margin-top: 0.3rem;">Sube una foto de tu firma (fondo blanco) para anexarla automáticamente a tus PDF generados.</small>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="margin-top: 1rem; width: 100%;">Guardar Cambios</button>
+    </form>
+</div>
+
+<script>
+function deleteSignature() {
+    if(!confirm('¿Estás seguro de que deseas eliminar tu firma digital? Tendrás que firmar manualmente hasta que subas una nueva.')) return;
+    
+    fetch("{{ url_for('delete_signature') }}", {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            const container = document.getElementById('signature-container');
+            if (container) container.remove();
+        } else {
+            window.location.reload();
+        }
+    })
+    .catch(e => {
+        console.error("Error eliminando firma:", e);
+        window.location.reload();
+    });
+}
+</script>
+{% endblock %}

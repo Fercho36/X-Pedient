@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% block title %}Transcriptor IA - X-Pedient{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 2rem auto;">
+    <h2 style="margin-top: 0;">Transcriptor Médico Asíncrono (IA)</h2>
+    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5;">
+        <b>Instrucciones:</b> Pulsa <b>"Grabar"</b> (o usa el atajo <b>Ctrl + Espacio</b> / el botón <b>Play/Pausa</b> en tus audífonos Bluetooth) para empezar a hablar y dictar un segmento a la vez. Cuando termines, presiona <b>"Detener"</b>. El sistema procesará tu audio y devolverá el texto exacto.
+    </p>
+
+    <div style="background: var(--bg-secondary); border-radius: 8px; padding: 2rem; text-align: center; margin-bottom: 2rem;">
+        <button id="recordBtn" class="btn btn-primary" onclick="toggleRecording()" style="padding: 1rem 2rem; font-size: 1.1rem; border-radius: 50px; display: inline-flex; align-items: center; gap: 0.5rem; transition: background 0.3s; border: none; cursor: pointer;">
+            <svg id="micIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+            <span id="btnText" style="color: white; font-weight: 600;">Iniciar Grabación</span>
+        </button>
+
+        <div class="form-group" style="max-width: 300px; margin: 1rem auto;">
+            <label class="form-label" for="micSelector" style="font-size: 0.85rem;">Micrófono de entrada:</label>
+            <select id="micSelector" class="form-control" style="font-size: 0.85rem;"></select>
+        </div>
+        <div id="statusIndicator" style="margin-top: 1rem; color: var(--text-muted); font-size: 0.95rem; font-weight: 600;">Listo para grabar.</div>
+    </div>
+
+    <div style="position: relative;">
+        <h3 style="font-size: 1rem; color: var(--text-muted); margin-bottom: 0.5rem;">Bloc de Notas:</h3>
+        <textarea id="transcriptBox" class="form-control" rows="10" placeholder="El texto dictado aparecerá aquí..." style="font-size: 1.05rem; line-height: 1.6; resize: vertical;"></textarea>
+        <button class="btn btn-outline" onclick="copyText()" style="position: absolute; top: 2.5rem; right: 1rem; background: white; padding: 0.4rem 0.8rem; font-size: 0.8rem;">Copiar</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+
+    const recordBtn = document.getElementById('recordBtn');
+    const btnText = document.getElementById('btnText');
+    const statusIndicator = document.getElementById('statusIndicator');
+    const transcriptBox = document.getElementById('transcriptBox');
+
+    // 1. Cargar micrófonos exactamente al abrir la página
+    document.addEventListener('DOMContentLoaded', loadMicrophones);
+
+    async function loadMicrophones() {
+        const micSelector = document.getElementById('micSelector');
+        if (!micSelector) return;
+        
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const audioInputs = devices.filter(device => device.kind === 'audioinput');
+            
+            stream.getTracks().forEach(track => track.stop()); // Liberar hardware
+            
+            micSelector.innerHTML = '';
+            
+            audioInputs.forEach((device, index) => {
+                const option = document.createElement('option');
+                option.value = device.deviceId;
+                option.text = device.label || `Micrófono ${index + 1}`;
+                micSelector.appendChild(option);
+            });
+        } catch(e) {
+            console.error("Error al cargar micrófonos:", e);
+            micSelector.innerHTML = '<option value="">Error de permisos</option>';
+        }
+    }
+
+    // 2. Configurar grabación leyendo solo el selector actual (Sin localStorage)
+    async function setupRecorder() {
+        const micSelector = document.getElementById('micSelector');
+        const selectedDeviceId = (micSelector && micSelector.value) ? micSelector.value : null;
+
+        const constraints = {
+            audio: selectedDeviceId ? { deviceId: { exact: selectedDeviceId } } : true
+        };
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert('Tu navegador no soporta grabación de audio nativa.');
+            return false;
+        }
+        
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
+            };
+            
+            mediaRecorder.onstop = processAudio;
+            return true;
+        } catch(e) {
+            console.error(e);
+            alert('Permiso de micrófono denegado o dispositivo desconectado.');
+            return false;
+        }
+    }
+
+    async function toggleRecording() {
+        if (!mediaRecorder) {
+            const ok = await setupRecorder();
+            if(!ok) return;
+        }
+
+        if (isRecording) {
+            // Stop
+            if (typeof playBeep === 'function') playBeep('stop');
+            mediaRecorder.stop();
+            isRecording = false;
+            
+            recordBtn.style.background = 'var(--accent-med)';
+            btnText.textContent = "Iniciar Grabación";
+            statusIndicator.textContent = "Procesando audio en la nube con AssemblyAI... Por favor espera.";
+            statusIndicator.style.color = "var(--accent-med)";
+        } else {
+            // Start
+            if (typeof playBeep === 'function') playBeep('start');
+            audioChunks = [];
+            mediaRecorder.start();
+            isRecording = true;
+            
+            recordBtn.style.background = 'var(--accent-danger)';
+            btnText.textContent = "Detener y Procesar";
+            statusIndicator.textContent = "Grabando... (Hable claramente)";
+            statusIndicator.style.color = "var(--accent-danger)";
+        }
+    }
+
+    async function processAudio() {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'record.webm');
+        
+        recordBtn.disabled = true;
+        recordBtn.style.opacity = '0.7';
+
+        try {
+            const res = await fetch('/api/assemblyai/transcribe', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            
+            if(res.ok && data.text) {
+                transcriptBox.value += (transcriptBox.value ? " " : "") + data.text;
+                statusIndicator.textContent = "Transcripción completada. Listo para grabar más.";
+                statusIndicator.style.color = "var(--text-muted)";
+            } else {
+                throw new Error(data.error || "Fallo desconocido al transcribir");
+            }
+        } catch(e) {
+            console.error(e);
+            alert("Error: " + e.message);
+            statusIndicator.textContent = "Error de conexión. Intenta de nuevo.";
+            statusIndicator.style.color = "var(--accent-danger)";
+        } finally {
+            recordBtn.disabled = false;
+            recordBtn.style.opacity = '1';
+        }
+    }
+
+    function copyText() {
+        const text = transcriptBox.value;
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Texto copiado al portapapeles. Listo para pegar en el Expediente.');
+        });
+    }
+</script>
+{% endblock %}

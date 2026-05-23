@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Consulta Rápida</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff; 
+            color: #111111; 
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: transparent;
+            color: #000000;
+            padding: 40px;
+            text-align: left;
+            border-bottom: 2px solid #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+            flex: 1;
+            order: 1;
+        }
+        .header p {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            width: 100%;
+            order: 3;
+        }
+        .folio-badge {
+            font-weight: bold;
+            font-size: 14px;
+            color: #000000;
+            order: 2;
+        }
+        .content {
+            padding: 40px;
+        }
+        .section-title {
+            color: #000000;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border-bottom: 0.5pt solid #000;
+            padding-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .data-item {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            border-left: none;
+            margin-bottom: 10px;
+        }
+        .data-label {
+            font-size: 12px;
+            color: #000000;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .data-value {
+            font-size: 15px;
+            font-weight: normal;
+            color: #111111;
+        }
+        .text-block {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            margin-bottom: 30px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #111111;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+        }
+        .signature {
+            width: 250px;
+            margin: 0 auto;
+            border-bottom: 1px solid #000000;
+            padding-bottom: 10px;
+            position: relative;
+            height: 100px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .signature img {
+            max-height: 80px;
+            max-width: 200px;
+            position: absolute;
+            bottom: 10px;
+        }
+        .signature-name {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #000000;
+        }
+        .signature-title {
+            font-size: 12px;
+            color: #000000;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        .attachment-img {
+            max-width: 100%;
+            display: block;
+            margin: 0 auto 20px;
+            border: none;
+            border-radius: 0;
+        }
+        .page-footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 8pt;
+            color: #666666;
+            border-top: 1px solid #eeeeee;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Expediente Clínico Electrónico</h1>
+        <p>Consulta Rápida - {{ 'Dr.' if current_user.sexo == 'Masculino' else 'Dra.' if current_user.sexo == 'Femenino' else 'Dr(a).' }} {{ doctor_name }}</p>
+        <p>Fecha: {{ cons.fecha }}</p>
+        <div class="folio-badge">FOLIO: {{ patient.folio }}</div>
+    </div>
+
+    <div class="content">
+        <h2 class="section-title">Datos del Paciente</h2>
+        <div class="grid-3">
+            <div class="data-item">
+                <div class="data-label">Nombre Completo</div>
+                <div class="data-value">{{ patient.nombre }} {{ patient.apellido_paterno }} {{ patient.apellido_materno }}</div>
+            </div>
+            <div class="data-item">
+                <div class="data-label">Género</div>
+                <div class="data-value">{{ patient.genero }}</div>
+            </div>
+            <div class="data-item">
+                <div class="data-label">Edad</div>
+                <div class="data-value">{{ patient.edad }} años</div>
+            </div>
+            <div class="data-item">
+                <div class="data-label">Peso</div>
+                <div class="data-value">{{ patient.peso }} kg</div>
+            </div>
+            <div class="data-item">
+                <div class="data-label">Altura</div>
+                <div class="data-value">{% if cons.altura %}{{ cons.altura }} m{% else %}N/A{% endif %}</div>
+            </div>
+            <div class="data-item">
+                <div class="data-label">IMC</div>
+                <div class="data-value">{% if cons.imc %}{{ cons.imc }}{% else %}N/A{% endif %}</div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Signos Vitales y Constantes</h2>
+        <div class="grid-4">
+            <div class="data-item">
+                <div class="data-label">Tensión Art.</div>
+                <div class="data-value">{{ cons.presion_arterial }}</div>
+            </div>
+            <div class="data-item">
+                <div class="data-label">Frec. Cardiaca</div>
+                <div class="data-value">{{ cons.frecuencia_cardiaca }}</div>
+            </div>
+            <div class="data-item">
+                <div class="data-label">Frec. Resp.</div>
+                <div class="data-value">{{ cons.frecuencia_respiratoria }}</div>
+            </div>
+            <div class="data-item">
+                <div class="data-label">Temperatura</div>
+                <div class="data-value">{{ cons.temperatura }}</div>
+            </div>
+            <div class="data-item">
+                <div class="data-label">SatO2</div>
+                <div class="data-value">{{ cons.saturacion_oxigeno }}</div>
+            </div>
+            <div class="data-item">
+                <div class="data-label">Escala Dolor</div>
+                <div class="data-value">{{ cons.evaluacion_dolor }}</div>
+            </div>
+        </div>
+
+        <h2 class="section-title">Motivo de Consulta</h2>
+        <div class="text-block">
+            {{ cons.motivo | replace('\n', '<br>') | safe }}
+        </div>
+
+        <h2 class="section-title">Resumen Clínico</h2>
+        <div class="text-block">
+            {{ cons.resumen_clinico | replace('\n', '<br>') | safe }}
+        </div>
+        
+        {% if cons.diagnostico %}
+        <h2 class="section-title">Diagnóstico</h2>
+        <div class="text-block">
+            {{ cons.diagnostico | replace('\n', '<br>') | safe }}
+        </div>
+        {% endif %}
+
+        {% if cons.receta %}
+        <h2 class="section-title">Receta Médica</h2>
+        <div class="text-block">
+            {{ cons.receta | replace('\n', '<br>') | safe }}
+        </div>
+        {% endif %}
+
+        <div class="footer">
+            <div class="signature">
+                {% if firma_base64 %}
+                <img src="{{ firma_base64 }}" alt="Firma">
+                {% endif %}
+            </div>
+            <div class="signature-name">{{ 'Dr.' if current_user.sexo == 'Masculino' else 'Dra.' if current_user.sexo == 'Femenino' else 'Dr(a).' }} {{ doctor_name }}</div>
+            <div class="signature-title">Firma del Médico Tratante</div>
+        </div>
+        
+        <div class="page-footer">
+            {{ current_user.direccion_consultorio if current_user.direccion_consultorio else 'Dirección no registrada' }}
+        </div>
+    </div>
+
+    {% if image_attachments %}
+    <div class="page-break"></div>
+    <div class="content">
+        <h2 class="section-title">Documentos Adjuntos</h2>
+        {% for img_base64 in image_attachments %}
+        <img src="{{ img_base64 }}" class="attachment-img">
+        <br>
+        {% endfor %}
+    </div>
+    {% endif %}
+</body>
+</html>

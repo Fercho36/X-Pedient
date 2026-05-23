@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}{% if form_type == 'login' %}Iniciar Sesión{% else %}Registro{% endif %} - ECE{% endblock %}
+
+{% block content %}
+<div style="max-width: 450px; margin: 4rem auto;">
+    <div class="card">
+        <h2 style="text-align: center; margin-bottom: 2rem; color: var(--accent-med);">
+            {% if form_type == 'login' %}Iniciar Sesión{% else %}Crear Cuenta{% endif %}
+        </h2>
+        
+        <form method="POST" action="{% if form_type == 'login' %}{{ url_for('login') }}{% else %}{{ url_for('register') }}{% endif %}">
+            {% if form_type == 'register' %}
+            <div class="form-group">
+                <label class="form-label" for="username">Nombre o Título (ej. Dr. Juan Pérez)</label>
+                <input type="text" id="username" name="username" class="form-control" required>
+            </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label class="form-label" for="email">Correo Electrónico</label>
+                <input type="email" id="email" name="email" class="form-control" required>
+            </div>
+            
+            <!-- 2. Funcionalidad de Recuperación de Cuenta -->
+            <div class="form-group">
+                <label class="form-label" for="password">Contraseña</label>
+                <div style="position: relative;">
+                    <input type="password" id="password" name="password" class="form-control" required style="padding-right: 2.5rem;">
+                    <button type="button" onclick="togglePasswordVisibility('password', this)" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer;">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                </div>
+                {% if form_type == 'login' %}
+                <!-- Enlace de recuperación que conecta a la lógica en app.py (ruta /forgot_password) -->
+                <div style="text-align: right; margin-top: 0.5rem;">
+                    <a href="{{ url_for('forgot_password') }}" style="color: var(--accent-med); text-decoration: none; font-size: 0.9rem;">¿Olvidé mi contraseña?</a>
+                </div>
+                {% endif %}
+            </div>
+            
+            {% if form_type == 'register' %}
+            <div class="form-group">
+                <label class="form-label" for="cedula">Cédula Profesional (Opcional)</label>
+                <input type="text" id="cedula" name="cedula" class="form-control" placeholder="Requerida solo para expedir recetas">
+                <small style="color: var(--text-muted); display: block; margin-top: 0.5rem;">
+                    Si no ingresas cédula, tendrás acceso a la plataforma pero no podrás usar la plantilla de Recetas.
+                </small>
+            </div>
+            {% endif %}
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                {% if form_type == 'login' %}Ingresar{% else %}Registrarse{% endif %}
+            </button>
+        </form>
+        
+        <div style="text-align: center; margin-top: 2rem; font-size: 0.95rem;">
+            {% if form_type == 'login' %}
+                ¿No tienes cuenta? <a href="{{ url_for('register') }}" style="color: var(--accent-med); text-decoration: none; font-weight: 500;">Regístrate</a>
+            {% else %}
+                ¿Ya tienes cuenta? <a href="{{ url_for('login') }}" style="color: var(--accent-med); text-decoration: none; font-weight: 500;">Inicia Sesión</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

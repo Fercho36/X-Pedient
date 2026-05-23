@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuidado Remoto - X-PEDIENT</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo-xpedient.png') }}">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>
+        // Aplicando tema claro por defecto para una experiencia médica inmaculada
+        document.documentElement.setAttribute('data-theme', 'light');
+    </script>
+    <style>
+        body {
+            background-color: var(--bg-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .patient-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            margin: 0 1rem 2rem 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: var(--accent-med);
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .success-msg {
+            display: none;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header
+        style="width: 100%; box-sizing: border-box; padding: 1.2rem 1.5rem; background: var(--bg-secondary); border-bottom: 1px solid var(--border-light); margin-bottom: 2rem; display: flex; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+        <div style="display: flex; align-items: center; gap: 4px;">
+            <img src="{{ url_for('static', filename='img/logo-xpedient.png') }}" alt="Logo X-PEDIENT"
+                style="height: 45px; width: auto; object-fit: contain;">
+            <span
+                style="font-weight: 700; font-size: 1.3rem; color: var(--text-main); letter-spacing: -0.5px;">X-PEDIENT</span>
+        </div>
+    </header>
+
+    <div class="patient-card">
+        <div class="header">
+            <h1>Registro de Medidas de Control</h1>
+            <p>Paciente: <strong>{{ patient_name }}</strong></p>
+            <p style="font-size: 0.8rem; margin-top: 0;">Por favor ingresa los datos solicitados por tu médico. Ningún
+                campo es obligatorio.</p>
+        </div>
+
+        <div id="successMessage" class="success-msg">
+            ¡Tus mediciones han sido guardadas y enviadas a tu médico exitosamente!
+        </div>
+
+        <form id="remoteCareForm">
+            <div class="form-group">
+                <label class="form-label" for="presion_arterial">Presión Arterial (mmHg)</label>
+                <input type="text" id="presion_arterial" name="presion_arterial" class="form-control"
+                    placeholder="Ej. 120/80">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label" for="glucosa">Glucosa (mg/dL)</label>
+                    <input type="text" id="glucosa" name="glucosa" class="form-control" placeholder="Ej. 95">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="oxigeno_sangre">Oxígeno en Sangre (%)</label>
+                    <input type="text" id="oxigeno_sangre" name="oxigeno_sangre" class="form-control"
+                        placeholder="Ej. 98">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="frecuencia_cardiaca">Fre. Cardíaca (lpm)</label>
+                    <input type="text" id="frecuencia_cardiaca" name="frecuencia_cardiaca" class="form-control"
+                        placeholder="Ej. 72">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="peso_actual">Peso Actual (kg)</label>
+                    <input type="text" id="peso_actual" name="peso_actual" class="form-control" placeholder="Ej. 70.5">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="notas_paciente">Notas u Observaciones</label>
+                <textarea id="notas_paciente" name="notas_paciente" class="form-control" rows="3"
+                    placeholder="¿Cómo te has sentido? (Opcional)"></textarea>
+            </div>
+
+            <button type="button" id="submitBtn" class="btn btn-primary"
+                style="width: 100%; padding: 1rem; font-size: 1.1rem; border-radius: 8px; margin-top: 1rem;"
+                onclick="submitData()">
+                Guardar Mediciones
+            </button>
+        </form>
+    </div>
+
+    <script>
+        async function submitData() {
+            const btn = document.getElementById('submitBtn');
+            const successMsg = document.getElementById('successMessage');
+
+            btn.disabled = true;
+            btn.textContent = "Guardando...";
+            successMsg.style.display = 'none';
+
+            const payload = {
+                presion_arterial: document.getElementById('presion_arterial').value,
+                glucosa: document.getElementById('glucosa').value,
+                oxigeno_sangre: document.getElementById('oxigeno_sangre').value,
+                frecuencia_cardiaca: document.getElementById('frecuencia_cardiaca').value,
+                peso_actual: document.getElementById('peso_actual').value,
+                notas_paciente: document.getElementById('notas_paciente').value
+            };
+
+            try {
+                const res = await fetch(`/api/remote_care/submit/{{ token }}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    successMsg.style.display = 'block';
+                    document.getElementById('remoteCareForm').reset();
+                    // Scroll a arriba para ver el mensaje
+                    window.scrollTo(0, 0);
+
+                    // Ocultar mensaje después de 5 segundos
+                    setTimeout(() => {
+                        successMsg.style.display = 'none';
+                    }, 5000);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Hubo un error de conexión.");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Guardar Mediciones";
+            }
+        }
+    </script>
+</body>
+
+</html>

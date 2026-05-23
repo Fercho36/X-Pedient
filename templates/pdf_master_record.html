@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Expediente Clínico</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff; 
+            color: #111111; 
+            margin: 0;
+            padding: 0;
+        }
+        .page {
+            padding: 40px;
+            page-break-after: always;
+        }
+        .page:last-child {
+            page-break-after: auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #000000;
+            font-size: 24px;
+            text-transform: uppercase;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+        .card {
+            background-color: transparent;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            margin-bottom: 20px;
+            overflow: visible;
+        }
+        .card-header {
+            background-color: transparent;
+            padding: 0 0 4px 0;
+            border-bottom: 0.5pt solid #000;
+            color: #000000;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        .card-content {
+            padding: 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .card-content p {
+            margin: 0 0 10px 0;
+        }
+        .card-content p:last-child {
+            margin-bottom: 0;
+        }
+        b {
+            color: #000000;
+        }
+        .text-red {
+            color: #000000;
+            font-weight: bold;
+        }
+        .table-front {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .table-front th, .table-front td {
+            border: 1px solid #333333;
+            padding: 10px;
+            font-size: 14px;
+        }
+        .table-front th {
+            background-color: transparent;
+            text-align: left;
+            width: 40%;
+            color: #000000;
+        }
+        .signature {
+            width: 250px;
+            margin: 50px auto 0;
+            border-bottom: 1px solid #000000;
+            padding-bottom: 10px;
+            position: relative;
+            height: 100px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            text-align: center;
+        }
+        .signature img {
+            max-height: 80px;
+            max-width: 200px;
+            position: absolute;
+            bottom: 10px;
+        }
+        .signature-name {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #000000;
+            text-align: center;
+        }
+        .signature-title {
+            font-size: 12px;
+            color: #000000;
+            text-align: center;
+        }
+        .receta-title {
+            color: #000000;
+            font-size: 24px;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #000000;
+            padding-bottom: 4px;
+        }
+        .receta-header {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .receta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .receta-table td {
+            border: 1px solid #333333;
+            padding: 10px;
+            font-size: 13px;
+        }
+        .prescripcion {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            min-height: 200px;
+        }
+        .page-footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 8pt;
+            color: #666666;
+            border-top: 1px solid #eeeeee;
+            padding-top: 10px;
+        }
+        
+        /* Force clean print styles and override style.css */
+        * {
+            box-shadow: none !important;
+            text-shadow: none !important;
+            transition: none !important;
+        }
+        body {
+            background-color: #ffffff !important;
+            color: #111111 !important;
+        }
+        .page {
+            background-color: #ffffff !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .card, .canvas-sheet {
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 0 20px 0 !important;
+        }
+        .card-header {
+            border-bottom: 0.5pt solid #000000 !important;
+            color: #000000 !important;
+            background-color: transparent !important;
+        }
+        table {
+            border-collapse: collapse !important;
+            width: 100% !important;
+        }
+        th, td {
+            border-color: #111111 !important;
+        }
+        .print-grid-3 {
+            display: table;
+            width: 100%;
+        }
+        .print-grid-col {
+            display: table-cell;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    {% for page in pages_data %}
+    {% set ptype = page.type %}
+    {% set fields = page.fields %}
+    <div class="page">
+        {% if ptype == 'hoja_frontal' %}
+            <div class="header">
+                <h1>HOJA FRONTAL</h1>
+            </div>
+            <table class="table-front">
+                <tr><th>NO. FOLIO PADRÓN:</th><td>{{ fields.hf_folio }}</td></tr>
+                <tr><th>NSS:</th><td>{{ fields.hf_nss }}</td></tr>
+                <tr><th>NOMBRE DEL PACIENTE:</th><td>{{ fields.hf_nombre }}</td></tr>
+                <tr><th>FECHA DE NACIMIENTO:</th><td>{{ fields.hf_fecha_nac }}</td></tr>
+                <tr><th>EDAD: / SEXO:</th><td>{{ fields.hf_edad }} / {{ fields.hf_sexo }}</td></tr>
+                <tr><th>UNIDAD DE ADSCRIPCIÓN:</th><td>{{ fields.hf_unidad }}</td></tr>
+                <tr><th>LOCALIDAD:</th><td>{{ fields.hf_localidad }}</td></tr>
+                <tr><th>GRUPO Y RH:</th><td>{{ fields.hf_grupo_rh }}</td></tr>
+                <tr><th><span class="text-red">ALERGIA:</span></th><td><span class="text-red">{{ fields.hf_alergias }}</span></td></tr>
+                <tr><th>OTROS:</th><td>{{ fields.hf_otros }}</td></tr>
+                <tr><th>MÉDICO TRATANTE:</th><td>{{ fields.hf_medico }}</td></tr>
+            </table>
+
+        {% elif ptype == 'historia_clinica' %}
+            <div class="header">
+                <h1>HISTORIA CLÍNICA</h1>
+            </div>
+            <div class="card">
+                <div class="card-header">Ficha de Identificación</div>
+                <div class="card-content">
+                    <p><b>Nacimiento:</b> {{ fields.hc_nacimiento }} | <b>Edad:</b> {{ fields.hc_edad }} | <b>Género:</b> {{ fields.hc_genero }} | <b>Religión:</b> {{ fields.hc_religion }}</p>
+                    <p><b>Discapacidad:</b> {{ fields.hc_discapacidad }} | <b>Idioma:</b> {{ fields.hc_idioma }} | <b>Informante:</b> {{ fields.hc_informante }}</p>
+                    <p><b>Padecimientos Heredofamiliares:</b> {{ fields.hc_phf }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Antecedentes Heredofamiliares</div>
+                <div class="card-content">
+                    <p><b>Madre:</b> {{ fields.hc_madre_datos }} | G/P/A/C: {{ fields.hc_madre_gpac }} | Tox: {{ fields.hc_madre_tox }}</p>
+                    <p><b>Padre:</b> {{ fields.hc_padre_datos }} | G/P/A/C: {{ fields.hc_padre_gpac }} | Tox: {{ fields.hc_padre_tox }}</p>
+                    <p><b>Hermanos:</b> {{ fields.hc_hermanos }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Antecedentes Personales No Patológicos</div>
+                <div class="card-content">
+                    {{ (fields.hc_apnp or '') | replace('\n', '<br>') | safe }}
+                </div>
+            </div>
+
+        {% elif ptype == 'nota_ingreso' %}
+            <div class="header">
+                <h1>NOTA DE INGRESO</h1>
+            </div>
+            <div class="card">
+                <div class="card-header">Datos Generales</div>
+                <div class="card-content">
+                    <p><b>NOMBRE:</b> {{ fields.ni_nombre }} | <b>NSS:</b> {{ fields.ni_nss }}</p>
+                    <p><b>FECHA:</b> {{ fields.ni_fecha }} | <b>CAMA:</b> {{ fields.ni_cama }} | <b>EDAD:</b> {{ fields.ni_edad }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">AHF / APNP / APP</div>
+                <div class="card-content">
+                    <p><b>DM:</b> {{ fields.ni_ahf_dm }} | <b>HTA:</b> {{ fields.ni_ahf_hta }} | <b>CA:</b> {{ fields.ni_ahf_ca }} | <b>INFARTOS:</b> {{ fields.ni_ahf_inf }}</p>
+                    <p><b>APNP:</b> {{ fields.ni_apnp }}</p>
+                    <p><b>APP:</b> {{ fields.ni_app }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Padecimiento Actual</div>
+                <div class="card-content">
+                    {{ (fields.ni_padecimiento or '') | replace('\n', '<br>') | safe }}
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Exploración Física</div>
+                <div class="card-content">
+                    {{ (fields.ni_exploracion or '') | replace('\n', '<br>') | safe }}
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Diagnóstico y Plan</div>
+                <div class="card-content">
+                    <p><b>PLAN:</b><br>{{ (fields.ni_plan or '') | replace('\n', '<br>') | safe }}</p>
+                    <p><b>DX:</b><br>{{ (fields.ni_dx or '') | replace('\n', '<br>') | safe }}</p>
+                    <p><b>PRONÓSTICO:</b><br>{{ (fields.ni_pronostico or '') | replace('\n', '<br>') | safe }}</p>
+                </div>
+            </div>
+
+        {% elif ptype == 'nota_urgencia' %}
+            <div class="header">
+                <h1>NOTA MÉDICA DE URGENCIAS</h1>
+            </div>
+            <div class="card">
+                <div class="card-header">Identificación y Triage</div>
+                <div class="card-content">
+                    <p><b>NOMBRE:</b> {{ fields.nu_nombre }} | <b>NSS:</b> {{ fields.nu_nss }} | <b>A. MED:</b> {{ fields.nu_amed }}</p>
+                    <p><b>FECHA Y HORA:</b> {{ fields.nu_fecha_hora }} | <b>SOMATOMETRÍA:</b> {{ fields.nu_somat }}</p>
+                    <p><b>SIGNOS:</b> {{ fields.nu_signos }} | <b>TRIAGE:</b> {{ fields.nu_triage }} | <b>HORA ATN:</b> {{ fields.nu_hora_atn }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Resumen Clínico</div>
+                <div class="card-content">
+                    <p><b>MOTIVO:</b> {{ fields.nu_motivo }}<br>
+                    <b>ALERGIAS:</b> {{ fields.nu_alergias }}<br>
+                    <b>QUIRÚRGICOS/TRAUM:</b> {{ fields.nu_qm }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Padecimiento Actual</div>
+                <div class="card-content">
+                    {{ (fields.nu_padecimiento or '') | replace('\n', '<br>') | safe }}
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Exploración Física</div>
+                <div class="card-content">
+                    {{ (fields.nu_exploracion or '') | replace('\n', '<br>') | safe }}
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Diagnóstico y Plan</div>
+                <div class="card-content">
+                    <p><b>DIAGNÓSTICO:</b><br>{{ (fields.nu_dx or '') | replace('\n', '<br>') | safe }}</p>
+                    <p><b>COMPLEMENTOS DX:</b><br>{{ (fields.nu_cdx or '') | replace('\n', '<br>') | safe }}</p>
+                    <p><b>PLAN:</b><br>{{ (fields.nu_plan or '') | replace('\n', '<br>') | safe }}</p>
+                    <p><b>TIPO URGENCIAS:</b> {{ fields.nu_tipo }} | <b>PRONÓSTICO:</b> {{ fields.nu_pronostico }}</p>
+                    <p><b>MÉDICO TRATANTE:</b> {{ fields.nu_medico }}</p>
+                </div>
+            </div>
+
+        {% elif ptype == 'nota_postparto' %}
+            <div class="header">
+                <h1>NOTA POSTPARTO</h1>
+            </div>
+            <div class="card">
+                <div class="card-header">Datos Generales</div>
+                <div class="card-content">
+                    <p><b>NOMBRE:</b> {{ fields.np_nombre }} | <b>EDAD:</b> {{ fields.np_edad }} | <b>AFILIACIÓN:</b> {{ fields.np_afiliacion }}</p>
+                    <p><b>DIAGNÓSTICO:</b> {{ fields.np_dx }}</p>
+                    <p><b>FECHA/HORA:</b> {{ fields.np_fechahora }} | <b>SIGNOS:</b> {{ fields.np_signos }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Nota Postparto</div>
+                <div class="card-content">
+                    {{ (fields.np_nota or '') | replace('\n', '<br>') | safe }}
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Producto</div>
+                <div class="card-content">
+                    <p><b>Sexo:</b> {{ fields.np_psexo }} | <b>Peso:</b> {{ fields.np_ppeso }}kg | <b>Talla:</b> {{ fields.np_ptalla }}cm<br>
+                    <b>Apgar:</b> {{ fields.np_apgar }} | <b>S/A:</b> {{ fields.np_sa }} | <b>Capurro:</b> {{ fields.np_capurro }} | <b>Hora Nac:</b> {{ fields.np_pnac }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Procedimiento y Complicaciones</div>
+                <div class="card-content">
+                    <p><b>Episiotomía:</b> {{ fields.np_epi }} | <b>Revisión Vag:</b> {{ fields.np_vag }} | <b>Fórceps:</b> {{ fields.np_forceps }} | <b>Sangrado:</b> {{ fields.np_sangrado }}</p>
+                    <p><b>Complicaciones:</b> {{ fields.np_comp }}<br><b>Diag final:</b> {{ fields.np_dxfinal }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">Indicaciones</div>
+                <div class="card-content">
+                    {{ (fields.np_indicaciones or '') | replace('\n', '<br>') | safe }}
+                </div>
+            </div>
+
+        {% elif ptype == 'nota_evolucion' %}
+            <div class="header">
+                <h1>NOTA DE EVOLUCIÓN CLÍNICA</h1>
+            </div>
+            <div class="card">
+                <div class="card-header">Control y Evolución</div>
+                <div class="card-content">
+                    <p><b>Signos Vitales:</b> {{ fields.ne_signos }}</p>
+                    <p><b>Evolución y Estado Actual:</b></p>
+                    <p>{{ (fields.ne_evolucion or '') | replace('\n', '<br>') | safe }}</p>
+                </div>
+            </div>
+
+        {% elif ptype == 'receta' %}
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #000; padding-bottom: 0.5rem; margin-bottom: 1rem; font-size: 11pt;">
+                <div style="flex:1; text-align: left;">
+                    <b style="font-size: 14pt;">{{ current_user.especialidad_principal ~ ' ' if current_user.especialidad_principal else '' }}{{ 'Dr.' if current_user.sexo == 'Masculino' else 'Dra.' if current_user.sexo == 'Femenino' else 'Dr(a).' }} {{ current_user.username }}</b><br>
+                    <span style="font-size: 11pt; color: #333;">Cédula: {{ current_user.cedula_profesional }} {{ ' | Teléfono: ' ~ current_user.telefono if current_user.telefono else '' }}</span><br>
+                    <span style="font-size: 11pt; color: #333;">{{ 'Domicilio: ' ~ current_user.direccion_consultorio if current_user.direccion_consultorio else '' }}</span>
+                </div>
+            </div>
+            
+            <div class="receta-title" style="border:none; text-align:center; margin-top: 20px;">RECETA MÉDICA</div>
+
+            <table class="receta-table">
+                <tr>
+                    <td><b>Paciente:</b> {{ fields.rc_paciente }}</td>
+                    <td><b>Edad:</b> {{ fields.rc_edad }}</td>
+                    <td colspan="2"><b>Fecha:</b> {{ fields.rc_fecha }}</td>
+                </tr>
+                <tr>
+                    <td><b>Peso (kg):</b> {{ fields.rc_peso }}</td>
+                    <td><b>Altura (m):</b> {{ fields.rc_talla }}</td>
+                    <td><b>IMC:</b> {{ fields.rc_imc if fields.rc_imc else '' }}</td>
+                    <td><b>Temp/TA:</b> {{ fields.rc_signos }}</td>
+                </tr>
+            </table>
+
+            <p><b>Diagnóstico:</b> {{ fields.rc_diagnostico }}</p>
+            <p><b>Prescripción:</b></p>
+            <div class="prescripcion">
+                {{ (fields.rc_prescripcion or '') | replace('\n', '<br>') | safe }}
+            </div>
+
+            <div class="signature" style="margin-top: 50px;">
+                {% if fields.rc_firma %}
+                <img src="{{ fields.rc_firma }}" alt="Firma">
+                {% elif firma_base64 %}
+                <img src="{{ firma_base64 }}" alt="Firma">
+                {% endif %}
+            </div>
+            <div class="signature-name">{{ 'Dr.' if current_user.sexo == 'Masculino' else 'Dra.' if current_user.sexo == 'Femenino' else 'Dr(a).' }} {{ current_user.username }}</div>
+            <div class="signature-title">Firma del Médico</div>
+
+        {% elif ptype == 'consentimiento_informado' %}
+            <div class="header">
+                <h1>CONSENTIMIENTO INFORMADO DEL PACIENTE</h1>
+            </div>
+            
+            <div style="margin-top: 15px; border: 1px solid #333; padding: 12px; background-color: #fafafa; border-radius: 4px; font-size: 13px;">
+                <b style="display: block; border-bottom: 1px solid #333; padding-bottom: 3px; margin-bottom: 8px; text-transform: uppercase;">Datos del Médico Tratante</b>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 33%; padding: 4px 0;"><b>Nombre:</b><br>{{ doc_name }}</td>
+                        <td style="width: 33%; padding: 4px 0;"><b>Especialidad:</b><br>{{ current_user.especialidad_principal or "Médico General" }}</td>
+                        <td style="width: 33%; padding: 4px 0;"><b>Cédula Profesional:</b><br>{{ cedula }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="margin-top: 15px; border: 1px solid #333; padding: 12px; border-radius: 4px; font-size: 13px;">
+                <b style="display: block; border-bottom: 1px solid #333; padding-bottom: 3px; margin-bottom: 8px; text-transform: uppercase;">Datos del Paciente</b>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 60%; padding: 4px 0; border-right: 1px solid #eee; padding-right: 10px;"><b>Nombre Completo:</b><br>{{ fields.ci_paciente or '' }}</td>
+                        <td style="width: 40%; padding: 4px 0; padding-left: 10px;"><b>Diagnóstico:</b><br>{{ fields.ci_dx or '' }}</td>
+                    </tr>
+                </table>
+                {% if fields.ci_ine_base64 %}
+                <div style="margin-top: 15px; text-align: center; border-top: 1px dashed #ccc; padding-top: 15px;">
+                    <b style="display: block; margin-bottom: 8px; font-size: 11px; text-transform: uppercase;">Identificación Oficial (INE/Pasaporte)</b>
+                    <img src="{{ fields.ci_ine_base64 }}" style="max-height: 220px; max-width: 100%; object-fit: contain; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="margin-top: 20px; text-align: justify; line-height: 1.5; font-size: 12px; color: #222;">
+                <p style="margin: 0 0 10px 0;">Por este conducto, yo, el paciente arriba mencionado, en pleno uso de mis facultades mentales, otorgo mi <b>Consentimiento Informado</b> para recibir atención médica por parte del profesional indicado.</p>
+                <p style="margin: 0 0 10px 0;">He sido informado(a) de manera clara, veraz y suficiente sobre mi diagnóstico, el plan de tratamiento propuesto, los riesgos inherentes, las alternativas disponibles y los posibles efectos secundarios o complicaciones que pudieran presentarse.</p>
+                <div style="background-color: #fffdec; padding: 10px; border-left: 4px solid #d97706; border-radius: 2px; margin-bottom: 10px; font-size: 11.5px; line-height: 1.4;">
+                    <b>Cláusula de Uso de Plataforma Digital:</b><br>
+                    El paciente declara su plena conformidad y acuerdo con el uso de la plataforma <b>X-PEDIENT</b> para la gestión, procesamiento y almacenamiento de su información clínica y datos personales. El paciente entiende que su Expediente Clínico Electrónico será resguardado bajo estrictos estándares de confidencialidad en dicha plataforma tecnológica, en cumplimiento con las normativas vigentes de protección de datos en salud.
+                </div>
+                <p style="margin: 0;">Autorizo al personal médico y de apoyo a realizar los procedimientos diagnósticos y terapéuticos que se consideren necesarios para preservar mi salud y bienestar.</p>
+            </div>
+
+            <table style="width: 100%; margin-top: 35px; border-collapse: collapse; page-break-inside: avoid;">
+                <tr>
+                    <td style="width: 50%; text-align: center; padding: 10px; vertical-align: bottom;">
+                        <div style="height: 70px; display: flex; align-items: flex-end; justify-content: center;">
+                            {% if fields.ci_firma_paciente %}
+                            <img src="{{ fields.ci_firma_paciente }}" style="max-height: 65px; max-width: 180px;">
+                            {% else %}
+                            <div style="width: 180px; border-bottom: 1px solid #000; height: 1px;"></div>
+                            {% endif %}
+                        </div>
+                        <div style="margin-top: 5px; font-weight: bold; font-size: 11px;">Firma del Paciente</div>
+                    </td>
+                    <td style="width: 50%; text-align: center; padding: 10px; vertical-align: bottom;">
+                        <div style="height: 70px; display: flex; align-items: flex-end; justify-content: center;">
+                            {% if fields.ci_firma_medico %}
+                            <img src="{{ fields.ci_firma_medico }}" style="max-height: 65px; max-width: 180px;">
+                            {% else %}
+                            <div style="width: 180px; border-bottom: 1px solid #000; height: 1px;"></div>
+                            {% endif %}
+                        </div>
+                        <div style="margin-top: 5px; font-weight: bold; font-size: 11px;">Firma del Médico</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width: 50%; text-align: center; padding: 25px 10px 10px; vertical-align: bottom;">
+                        <div style="height: 70px; display: flex; align-items: flex-end; justify-content: center;">
+                            {% if fields.ci_firma_testigo1 %}
+                            <img src="{{ fields.ci_firma_testigo1 }}" style="max-height: 65px; max-width: 180px;">
+                            {% else %}
+                            <div style="width: 180px; border-bottom: 1px solid #000; height: 1px;"></div>
+                            {% endif %}
+                        </div>
+                        <div style="margin-top: 5px; font-weight: bold; font-size: 11px;">Firma Testigo 1</div>
+                        <div style="font-size: 10px; color: #555; margin-top: 2px;">{{ fields.ci_nombre_testigo1 or '' }}</div>
+                    </td>
+                    <td style="width: 50%; text-align: center; padding: 25px 10px 10px; vertical-align: bottom;">
+                        <div style="height: 70px; display: flex; align-items: flex-end; justify-content: center;">
+                            {% if fields.ci_firma_testigo2 %}
+                            <img src="{{ fields.ci_firma_testigo2 }}" style="max-height: 65px; max-width: 180px;">
+                            {% else %}
+                            <div style="width: 180px; border-bottom: 1px solid #000; height: 1px;"></div>
+                            {% endif %}
+                        </div>
+                        <div style="margin-top: 5px; font-weight: bold; font-size: 11px;">Firma Testigo 2</div>
+                        <div style="font-size: 10px; color: #555; margin-top: 2px;">{{ fields.ci_nombre_testigo2 or '' }}</div>
+                    </td>
+                </tr>
+            </table>
+
+        {% elif ptype == 'indicaciones_medicas' %}
+            <div class="header">
+                <h1>HOJA DE INDICACIONES MÉDICAS</h1>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 13px;">
+                <tr>
+                    <td style="border: 1px solid #000; padding: 6px; width: 25%;"><b>Fecha:</b><br>{{ fields.im_fecha or '' }}</td>
+                    <td style="border: 1px solid #000; padding: 6px; width: 25%;"><b>Hora:</b><br>{{ fields.im_hora or '' }}</td>
+                    <td style="border: 1px solid #000; padding: 6px; width: 15%;"><b>Cama:</b><br>{{ fields.im_cama or '' }}</td>
+                    <td style="border: 1px solid #000; padding: 6px; width: 35%; color: #dc2626;"><b>Alergias:</b><br><b>{{ fields.im_alergias or '' }}</b></td>
+                </tr>
+            </table>
+
+            <div style="border: 1px solid #000; padding: 10px; margin-bottom: 12px; font-size: 13px;">
+                <b style="text-decoration: underline; display: block; margin-bottom: 5px;">DIETA:</b>
+                <div style="line-height: 1.5; min-height: 45px; white-space: pre-wrap;">{{ fields.im_dieta or '' }}</div>
+            </div>
+
+            <div style="border: 1px solid #000; padding: 10px; margin-bottom: 12px; font-size: 13px;">
+                <b style="text-decoration: underline; display: block; margin-bottom: 5px;">SOLUCIONES PARENTERALES:</b>
+                <div style="line-height: 1.5; min-height: 35px; white-space: pre-wrap;">{{ fields.im_soluciones or '' }}</div>
+            </div>
+
+            <div style="border: 1px solid #000; padding: 10px; margin-bottom: 12px; font-size: 13px;">
+                <b style="text-decoration: underline; display: block; margin-bottom: 8px;">MEDICAMENTOS:</b>
+                <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 12px;">
+                    <thead>
+                        <tr style="background-color: #f1f5f9;">
+                            <th style="border: 1px solid #000; padding: 6px; width: 40%; text-align: left;">Medicamento / Presentación</th>
+                            <th style="border: 1px solid #000; padding: 6px; width: 15%;">Dosis</th>
+                            <th style="border: 1px solid #000; padding: 6px; width: 15%;">Vía de Adm.</th>
+                            <th style="border: 1px solid #000; padding: 6px; width: 15%;">Frecuencia</th>
+                            <th style="border: 1px solid #000; padding: 6px; width: 15%;">Horario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in range(1, 5) %}
+                        {% set med_val = fields['im_med' ~ i] %}
+                        {% set dos_val = fields['im_dos' ~ i] %}
+                        {% set via_val = fields['im_via' ~ i] %}
+                        {% set fre_val = fields['im_fre' ~ i] %}
+                        {% set hor_val = fields['im_hor' ~ i] %}
+                        <tr>
+                            <td style="border: 1px solid #000; padding: 6px; text-align: left; white-space: pre-wrap;">{{ med_val or '' }}</td>
+                            <td style="border: 1px solid #000; padding: 6px;">{{ dos_val or '' }}</td>
+                            <td style="border: 1px solid #000; padding: 6px;">{{ via_val or '' }}</td>
+                            <td style="border: 1px solid #000; padding: 6px;">{{ fre_val or '' }}</td>
+                            <td style="border: 1px solid #000; padding: 6px;">{{ hor_val or '' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="border: 1px solid #000; padding: 10px; margin-bottom: 15px; font-size: 13px;">
+                <b style="text-decoration: underline; display: block; margin-bottom: 5px;">CUIDADOS GENERALES DE ENFERMERÍA:</b>
+                <div style="line-height: 1.5; min-height: 60px; white-space: pre-wrap;">{{ fields.im_cuidados or '' }}</div>
+            </div>
+
+            <div style="margin-top: 35px; display: flex; justify-content: flex-end; page-break-inside: avoid;">
+                <div style="text-align: center; width: 250px;">
+                    <div style="height: 70px; display: flex; align-items: flex-end; justify-content: center;">
+                        {% if fields.im_firma_medico %}
+                        <img src="{{ fields.im_firma_medico }}" style="max-height: 65px; max-width: 180px;">
+                        {% else %}
+                        <div style="width: 180px; border-bottom: 1px solid #000; height: 1px;"></div>
+                        {% endif %}
+                    </div>
+                    <div style="font-weight: bold; border-top: 1px solid #000; padding-top: 4px; font-size: 11px; margin-top: 5px;">Nombre y Firma del Médico</div>
+                    <div style="font-size: 10px; color: #555; margin-top: 2px;">{{ doc_name }}</div>
+                </div>
+            </div>
+
+        {% elif ptype == 'referencia_medica' %}
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 15px;">
+                <div style="font-weight: bold; font-size: 18px; color: #000; text-transform: uppercase;">Referencia / Contrarreferencia</div>
+                <div style="border: 1px solid #000; padding: 2px 10px; font-weight: bold; font-size: 11px;">INPDSCEC-06</div>
+            </div>
+
+            <div style="border: 1px solid #000; margin-bottom: 12px; font-size: 13px;">
+                <div style="background-color: #f1f5f9; font-weight: bold; padding: 4px 8px; border-bottom: 1px solid #000; text-align: center;">SECCIÓN I y II: INSTITUCIONES</div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 50%; border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 6px;">
+                            <b>Unidad que Refiere:</b><br>{{ fields.rm_unidad_origen or '' }}
+                        </td>
+                        <td style="width: 50%; border-bottom: 1px solid #000; padding: 6px;">
+                            <b>Especialidad / Servicio:</b><br>{{ fields.rm_especialidad_origen or '' }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 50%; border-right: 1px solid #000; padding: 6px;">
+                            <b>Unidad Destino:</b><br>{{ fields.rm_unidad_destino or '' }}
+                        </td>
+                        <td style="width: 50%; padding: 6px;">
+                            <b>Especialidad / Servicio Destino:</b><br>{{ fields.rm_especialidad_destino or '' }}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="border: 1px solid #000; margin-bottom: 12px; font-size: 13px;">
+                <div style="background-color: #f1f5f9; font-weight: bold; padding: 4px 8px; border-bottom: 1px solid #000; text-align: center;">SECCIÓN III: MOTIVO DE LA REFERENCIA</div>
+                <div style="padding: 8px; line-height: 1.6;">
+                    {% set opt = fields.rm_motivo_opcion %}
+                    <span style="margin-right: 15px;"><b>[{{ 'X' if opt == 'Interconsulta' else ' ' }}]</b> Interconsulta</span>
+                    <span style="margin-right: 15px;"><b>[{{ 'X' if opt == 'Hospitalización' else ' ' }}]</b> Hospitalización</span>
+                    <span style="margin-right: 15px;"><b>[{{ 'X' if opt == 'No acepta internamiento' else ' ' }}]</b> No acepta internamiento</span><br>
+                    <span style="margin-right: 15px;"><b>[{{ 'X' if opt == 'No hay disponibilidad de camas' else ' ' }}]</b> No hay disponibilidad de camas</span>
+                    <span><b>[{{ 'X' if opt == 'Otro' else ' ' }}]</b> Otro: {{ fields.rm_motivo_otro or '' }}</span>
+                </div>
+            </div>
+
+            <div style="border: 1px solid #000; margin-bottom: 15px; font-size: 13px;">
+                <div style="background-color: #f1f5f9; font-weight: bold; padding: 4px 8px; border-bottom: 1px solid #000; text-align: center;">SECCIÓN IV: RESUMEN CLÍNICO</div>
+                
+                <table style="width: 100%; border-collapse: collapse; border-bottom: 1px solid #000; font-size: 12px;">
+                    <tr>
+                        <td style="width: 50%; border-right: 1px solid #000; padding: 6px;">
+                            <b>¿El paciente ha recibido manejo previamente?</b><br>
+                            {% set prev = fields.rm_manejo_previo %}
+                            <b>[{{ 'X' if prev == 'Sí' else ' ' }}]</b> Sí &nbsp;&nbsp;&nbsp; <b>[{{ 'X' if prev == 'No' else ' ' }}]</b> No
+                        </td>
+                        <td style="width: 50%; padding: 6px;">
+                            <b>¿Se anexan estudios de laboratorio y gabinete?</b><br>
+                            {% set anex = fields.rm_estudios_anexos %}
+                            <b>[{{ 'X' if anex == 'Sí' else ' ' }}]</b> Sí &nbsp;&nbsp;&nbsp; <b>[{{ 'X' if anex == 'No' else ' ' }}]</b> No
+                        </td>
+                    </tr>
+                </table>
+
+                <div style="padding: 8px; border-bottom: 1px solid #eee;">
+                    <b>Padecimiento Actual / Evolución:</b>
+                    <div style="line-height: 1.4; white-space: pre-wrap; margin-top: 4px; min-height: 60px;">{{ fields.rm_padecimiento or '' }}</div>
+                </div>
+                <div style="padding: 8px; border-bottom: 1px solid #eee;">
+                    <b>Diagnóstico Probable:</b>
+                    <div style="line-height: 1.4; white-space: pre-wrap; margin-top: 4px; min-height: 40px;">{{ fields.rm_diagnostico_prob or '' }}</div>
+                </div>
+                <div style="padding: 8px;">
+                    <b>Tratamiento Inicial Sugerido:</b>
+                    <div style="line-height: 1.4; white-space: pre-wrap; margin-top: 4px; min-height: 50px;">{{ fields.rm_tratamiento_inic or '' }}</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 35px; display: flex; justify-content: flex-end; page-break-inside: avoid;">
+                <div style="text-align: center; width: 280px;">
+                    <div style="height: 70px; display: flex; align-items: flex-end; justify-content: center;">
+                        {% if fields.rm_firma_medico %}
+                        <img src="{{ fields.rm_firma_medico }}" style="max-height: 65px; max-width: 180px;">
+                        {% else %}
+                        <div style="width: 180px; border-bottom: 1px solid #000; height: 1px;"></div>
+                        {% endif %}
+                    </div>
+                    <div style="font-weight: bold; border-top: 1px solid #000; padding-top: 4px; font-size: 11px; margin-top: 5px;">Nombre y Firma del Médico que Refiere</div>
+                    <div style="font-size: 10px; color: #555; margin-top: 2px;">{{ doc_name }}</div>
+                </div>
+            </div>
+
+        {% elif ptype == 'exploracion_fisica' %}
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 15px;">
+                <div style="font-weight: bold; font-size: 18px; color: #000; text-transform: uppercase;">Exploración Física y Habitus Exterior</div>
+                <div style="border: 1px solid #000; padding: 2px 10px; font-weight: bold; font-size: 11px;">PDF-9</div>
+            </div>
+
+            <div style="border: 1px solid #000; margin-bottom: 12px; font-size: 13px;">
+                <div style="background-color: #f1f5f9; font-weight: bold; padding: 4px 8px; border-bottom: 1px solid #000; text-align: center;">SOMATOMETRÍA Y SIGNOS VITALES</div>
+                <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 12px;">
+                    <tr style="background-color: #fafafa;">
+                        <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 5px; width: 14%;">Peso (kg)</th>
+                        <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 5px; width: 14%;">Talla (m)</th>
+                        <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 5px; width: 14%;">FC (x min)</th>
+                        <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 5px; width: 14%;">FR (x min)</th>
+                        <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 5px; width: 14%;">T.A. (mmHg)</th>
+                        <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 5px; width: 14%;">Temp (°C)</th>
+                        <th style="border-bottom: 1px solid #000; padding: 5px; width: 16%;">IMC</th>
+                    </tr>
+                    <tr>
+                        <td style="border-right: 1px solid #000; padding: 8px; font-weight: bold;">{{ fields.ef_peso or '' }}</td>
+                        <td style="border-right: 1px solid #000; padding: 8px; font-weight: bold;">{{ fields.ef_talla or '' }}</td>
+                        <td style="border-right: 1px solid #000; padding: 8px;">{{ fields.ef_fc or '' }}</td>
+                        <td style="border-right: 1px solid #000; padding: 8px;">{{ fields.ef_fr or '' }}</td>
+                        <td style="border-right: 1px solid #000; padding: 8px;">{{ fields.ef_ta or '' }}</td>
+                        <td style="border-right: 1px solid #000; padding: 8px;">{{ fields.ef_temp or '' }}</td>
+                        <td style="padding: 8px; font-weight: bold;">{{ fields.ef_imc or '' }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="border: 1px solid #000; font-size: 13px;">
+                <div style="background-color: #f1f5f9; font-weight: bold; padding: 4px 8px; border-bottom: 1px solid #000; text-align: center;">DESGLOSE POR SISTEMAS</div>
+                
+                <div style="padding: 8px; border-bottom: 1px solid #eee;">
+                    <b>HABITUS EXTERIOR:</b>
+                    <div style="line-height: 1.4; white-space: pre-wrap; margin-top: 3px; min-height: 25px;">{{ fields.ef_habitus or '' }}</div>
+                </div>
+                <div style="padding: 8px; border-bottom: 1px solid #eee;">
+                    <b>CABEZA (Cráneo y Cara):</b>
+                    <div style="line-height: 1.4; white-space: pre-wrap; margin-top: 3px; min-height: 25px;">{{ fields.ef_cabeza or '' }}</div>
+                </div>
+                <div style="padding: 8px; border-bottom: 1px solid #eee;">
+                    <b>CUELLO:</b>
+                    <div style="line-height: 1.4; white-space: pre-wrap; margin-top: 3px; min-height: 25px;">{{ fields.ef_cuello or '' }}</div>
+                </div>
+                <div style="padding: 8px; border-bottom: 1px solid #eee;">
+                    <b>TÓRAX (Cara posterior, Región precordial, Glándulas mamarias):</b>
+                    <div style="line-height: 1.4; white-space: pre-wrap; margin-top: 3px; min-height: 35px;">{{ fields.ef_torax or '' }}</div>
+                </div>
+                <div style="padding: 8px; border-bottom: 1px solid #eee;">
+                    <b>ABDOMEN:</b>
+                    <div style="line-height: 1.4; white-space: pre-wrap; margin-top: 3px; min-height: 25px;">{{ fields.ef_abdomen or '' }}</div>
+                </div>
+                <div style="padding: 8px; border-bottom: 1px solid #eee;">
+                    <b>REGIÓN INGUINO-CRURAL:</b>
+                    <div style="line-height: 1.4; white-space: pre-wrap; margin-top: 3px; min-height: 25px;">{{ fields.ef_inguino or '' }}</div>
+                </div>
+                <div style="padding: 8px; border-bottom: 1px solid #eee;">
+                    <b>GENITALES EXTERNOS / TACTO VAGINAL / TACTO RECTAL:</b>
+                    <div style="line-height: 1.4; white-space: pre-wrap; margin-top: 3px; min-height: 25px;">{{ fields.ef_genitales or '' }}</div>
+                </div>
+                <div style="padding: 8px;">
+                    <b>EXTREMIDADES:</b>
+                    <div style="line-height: 1.4; white-space: pre-wrap; margin-top: 3px; min-height: 25px;">{{ fields.ef_extremidades or '' }}</div>
+                </div>
+            </div>
+
+        {% elif ptype.startswith('custom_') %}
+            <div class="header">
+                <h1>{{ page.custom_name or 'PLANTILLA PERSONALIZADA' }}</h1>
+            </div>
+            
+            <div class="custom-template-pdf" style="font-size: 13px; line-height: 1.6; margin-top: 15px;">
+                {% if page.campos_personalizados %}
+                    {% for campo in page.campos_personalizados %}
+                        {% if campo.type == 'textarea' or campo.type == 'text' or campo.type == 'number' %}
+                            <div style="margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+                                <b>{{ campo.label }}:</b>
+                                <div style="white-space: pre-wrap; margin-top: 4px;">{{ campo.value or '' }}</div>
+                            </div>
+                        {% elif campo.type == 'checkbox' %}
+                            <div style="margin-bottom: 12px;">
+                                <b>[{{ 'X' if campo.value == 'true' else ' ' }}] {{ campo.label }}</b>
+                            </div>
+                        {% elif campo.type == 'image_field' %}
+                            <div style="margin-top: 15px; margin-bottom: 15px; padding: 12px; border: 1px solid #ddd; border-radius: 4px; background-color: #fafafa; page-break-inside: avoid;">
+                                {% if campo.image_base64 %}
+                                <div style="text-align: center; margin-bottom: 10px;">
+                                    <img src="{{ campo.image_base64 }}" style="max-height: 250px; max-width: 100%; object-fit: contain; border-radius: 4px;">
+                                </div>
+                                {% endif %}
+                                <b>{{ campo.label }}:</b>
+                                <div style="margin-top: 4px; white-space: pre-wrap;">{{ campo.value or '' }}</div>
+                            </div>
+                        {% elif campo.type == 'signature_pad' %}
+                            <div style="margin-top: 15px; margin-bottom: 15px; padding: 12px; border: 1px dashed #ccc; border-radius: 4px; text-align: center; display: inline-block; min-width: 250px; page-break-inside: avoid;">
+                                <b>{{ campo.label }}</b>
+                                <div style="height: 70px; display: flex; align-items: flex-end; justify-content: center; margin-top: 8px;">
+                                    {% if campo.value %}
+                                    <img src="{{ campo.value }}" style="max-height: 65px; max-width: 200px;">
+                                    {% else %}
+                                    <div style="width: 180px; border-bottom: 1px solid #000; height: 1px;"></div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div style="margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+                                <b>{{ campo.label }}:</b> {{ campo.value or '' }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <p style="color: #666; font-style: italic;">No hay campos para mostrar.</p>
+                {% endif %}
+            </div>
+
+        {% endif %}
+
+        {% if ptype == 'receta' %}
+        <div class="page-footer">
+            {{ current_user.direccion_consultorio if current_user.direccion_consultorio else 'Dirección no registrada' }}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+</body>
+</html>
